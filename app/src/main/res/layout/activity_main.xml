@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout  xmlns:android="http://schemas.android.com/apk/res/android"
+               xmlns:tools="http://schemas.android.com/tools"
+               android:layout_width="match_parent"
+               android:orientation="vertical"
+               android:layout_height="match_parent" >
+
+    <include layout="@layout/include_hometitle" />
+
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:layout_height="match_parent">
+
+        <LinearLayout
+            android:id="@+id/layout_check"
+            android:layout_width="150dp"
+            android:background="@drawable/home_crile"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:layout_height="150dp">
+
+            <TextView
+                android:id="@+id/tv_show"
+                android:textColor="@color/white"
+                android:text="温度"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"/>
+
+        </LinearLayout>
+
+        <TextView
+            android:layout_marginTop="50dp"
+            android:background="@color/bg_et_profit"
+            android:padding="10dp"
+            android:id="@+id/tv_check"
+            android:text="查看历史数据"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"/>
+    </LinearLayout>
+
+
+
+    </LinearLayout>

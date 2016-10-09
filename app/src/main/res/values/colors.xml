@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="colorPrimary">#3F51B5</color>
+    <color name="colorPrimaryDark">#303F9F</color>
+    <color name="colorAccent">#FF4081</color>
+
+
+
+    <!--  -->
+    <color name="appBackground">#fff2f3f4</color>
+
+
+    <!-- 常规颜色 -->
+    <color name="garyLine">#22000000</color>
+
+
+    <!-- 常规颜色 -->
+    <color name="gary">#ff9D9D9D</color>
+    <color name="blood">#ff91151a</color>
+    <color name="transparent">#00000000</color>
+    <color name="layoutdown">#99000000</color>
+    <color name="grayness">#ffBFBFBF</color>
+    <color name="addritembackground">#fff8f9f6</color>
+    <color name="white">#ffFFFFFF</color> <!--白色 -->
+    <!--<color name="unread">#FFFFFEF2</color>-->
+    <color name="unread">#7dFFF1D0</color>
+
+    <color name="bg_view">#FFF3F3F3</color>
+
+
+    <!-- 首页颜色  -->
+
+    <color name="hometitlebg">#20222e</color>
+
+    <!-- 我的颜色 -->
+    <color name="bg_mine">#FFF3F3F3</color>
+    <color name="mine_name">#ff323232</color>
+    <color name="mine_red">#ffF15654</color>
+    <color name="mine_presenter_name">#ff7B7B7B</color>
+    <color name="collect_price">#ffF15853</color>
+    <color name="bg_mine_line">#ffd6d6d6</color>
+    <drawable name="line_tab_unin">#00000000</drawable>
+    <drawable name="line_tab_in">#fff15654</drawable>
+    <color name="txt_gray">#ff898989</color>
+    <color name="chane_red">#ffF15755</color>
+    <color name="bg_et_profit">#ffE5E5E5</color>
+    <color name="collect_gray_txt">#ffaeaeae</color>
+    <color name="collect_red">#ffEF595A</color>
+    <color name="collect_yellow">#FFFEC063</color>
+    <color name="gray_branch">#F5F5F5</color>
+
+
+    <color name="bg_bussine_title">#22000000</color>
+    <color name="bg_bussine_red">#ffE94E4C</color>
+    <color name="btn_add_car">#ffFFC15A</color>
+
+    <!--下拉控件颜色-->
+    <color name="material_red">#ffF44336</color>
+    <color name="material_green">#ff4CAF50</color>
+    <color name="material_blue">#ff03A9F4</color>
+    <color name="material_yellow">#ffFFEB3B</color>
+
+
+
+    <color name="dialog_ok">#535bfb</color>
+    <color name="dialog_cancel">#fb4a89</color>
+</resources>

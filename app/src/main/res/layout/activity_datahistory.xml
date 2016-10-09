@@ -1,0 +1,33 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              xmlns:tools="http://schemas.android.com/tools"
+              android:layout_width="match_parent"
+              android:layout_height="match_parent"
+              android:orientation="vertical"
+>
+    <include layout="@layout/include_backtitle" />
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+
+       <TextView
+           android:id="@+id/tvChoice"
+           android:gravity="center"
+           android:padding="10dp"
+           android:layout_centerInParent="true"
+           android:layout_alignParentBottom="true"
+           android:layout_width="wrap_content"
+           android:text="选择日期"
+           android:layout_height="wrap_content"/>
+
+        <com.github.mikephil.charting.charts.LineChart
+            android:id="@+id/chart"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_above="@+id/tvChoice"/>
+
+    </RelativeLayout>
+
+
+</LinearLayout>

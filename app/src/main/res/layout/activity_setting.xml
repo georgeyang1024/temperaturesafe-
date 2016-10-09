@@ -1,0 +1,304 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+    >
+    <data>
+        <variable name="setting" type="cn.georgeyang.temperaturesafe.entity.SettingEntity"/>
+    </data>
+
+
+<LinearLayout
+              android:orientation="vertical"
+              android:layout_width="match_parent"
+              android:layout_height="match_parent">
+
+    <include layout="@layout/include_backtitle" />
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:orientation="vertical"
+            android:layout_height="match_parent">
+
+
+            <RelativeLayout
+                style="@style/setting_itemLayout"
+                >
+
+                <TextView
+                    android:layout_centerVertical="true"
+                    android:text="声音报警"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"/>
+
+                <Switch
+                    android:layout_alignParentRight="true"
+                    android:id="@+id/sw_soundAlarm"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textOn="开"
+                    android:textOff="关"
+                    />
+
+            </RelativeLayout>
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="0.5dp"
+                android:background="@color/grayness"
+                />
+
+
+
+
+            <RelativeLayout
+                android:id="@+id/layout_wer"
+                style="@style/setting_itemLayout"
+                >
+
+                <TextView
+                    android:layout_centerVertical="true"
+                    android:text="振动报警"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"/>
+
+                <Switch
+                    android:layout_alignParentRight="true"
+                    android:id="@+id/sw_vibrationAlarm"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textOn="开"
+                    android:textOff="关"
+                    />
+
+            </RelativeLayout>
+
+
+
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="0.5dp"
+                android:background="@color/grayness"
+                />
+
+            <RelativeLayout
+                android:id="@+id/layout_low"
+                style="@style/setting_itemLayout"
+                >
+
+                <TextView
+                    android:layout_centerVertical="true"
+                    android:text="低温报警温度"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"/>
+
+                <TextView
+                    android:id="@+id/tv_low"
+                    android:text="0ºC"
+                    app:tmp="@{setting.lowTemperatureValue}"
+                    android:layout_alignParentRight="true"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"/>
+
+            </RelativeLayout>
+
+
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="0.5dp"
+                android:background="@color/grayness"
+                />
+
+            <RelativeLayout
+                android:id="@+id/layout_height"
+                style="@style/setting_itemLayout"
+                >
+
+                <TextView
+                    android:layout_centerVertical="true"
+                    android:text="高温报警温度"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"/>
+                <TextView
+                    android:id="@+id/tv_height"
+                    android:text="2ºC"
+                    android:layout_alignParentRight="true"
+                    android:layout_width="wrap_content"
+                    app:tmp="@{setting.highTemperatureValue}"
+                    android:layout_height="wrap_content"/>
+
+            </RelativeLayout>
+
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="0.5dp"
+                android:background="@color/grayness"
+                />
+
+
+            <RelativeLayout
+                android:id="@+id/layout_adjust"
+                style="@style/setting_itemLayout"
+                >
+
+                <TextView
+                    android:layout_centerVertical="true"
+                    android:text="人性校准"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"/>
+
+                <TextView
+                    android:id="@+id/tv_adjust"
+                    android:text="2ºC"
+                    android:layout_alignParentRight="true"
+                    app:tmp="@{setting.adjustTemperatureValue}"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"/>
+
+
+
+            </RelativeLayout>
+
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="0.5dp"
+                android:background="@color/grayness"
+                />
+
+
+            <RelativeLayout
+                android:id="@+id/layout_lost"
+                style="@style/setting_itemLayout"
+                >
+
+                <TextView
+                    android:layout_centerVertical="true"
+                    android:text="蓝牙方防丢"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"/>
+
+                <Switch
+                    android:layout_alignParentRight="true"
+                    android:id="@+id/sw_lostAlarm"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textOn="开"
+                    android:textOff="关"
+                    />
+
+            </RelativeLayout>
+
+
+            <RelativeLayout
+                android:visibility="gone"
+                android:id="@+id/layout_batter"
+                style="@style/setting_itemLayout"
+                >
+
+                <TextView
+                    android:layout_centerVertical="true"
+                    android:text="电池电量"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"/>
+
+                <ImageView
+                    android:layout_alignParentRight="true"
+                    android:layout_width="30dp"
+                    android:src="@mipmap/img_go"
+                    android:layout_height="30dp"/>
+
+
+
+            </RelativeLayout>
+
+
+            <RelativeLayout
+                android:visibility="gone"
+                android:id="@+id/layout_buleTool"
+                style="@style/setting_itemLayout"
+                >
+
+                <TextView
+                    android:layout_centerVertical="true"
+                    android:text="蓝牙设置"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"/>
+
+                <ImageView
+                    android:layout_alignParentRight="true"
+                    android:layout_width="30dp"
+                    android:src="@mipmap/img_go"
+                    android:layout_height="30dp"/>
+
+
+
+            </RelativeLayout>
+
+
+            <RelativeLayout
+                android:visibility="gone"
+                android:id="@+id/layout_people"
+                style="@style/setting_itemLayout"
+                >
+
+                <TextView
+                    android:layout_centerVertical="true"
+                    android:text="成员管理"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"/>
+
+                <ImageView
+                    android:layout_alignParentRight="true"
+                    android:layout_width="30dp"
+                    android:src="@mipmap/img_go"
+                    android:layout_height="30dp"/>
+
+
+
+            </RelativeLayout>
+
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="0.5dp"
+                android:background="@color/grayness"
+                />
+
+            <RelativeLayout
+                android:id="@+id/layout_about"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:padding="10dp"
+                android:background="@drawable/selector_general_white"
+                >
+
+                <TextView
+                    android:layout_centerInParent="true"
+                    android:text="关于我们"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"/>
+
+
+            </RelativeLayout>
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="0.5dp"
+                android:background="@color/grayness"
+                />
+
+        </LinearLayout>
+
+
+    </ScrollView>
+
+</LinearLayout>
+
+    </layout>
