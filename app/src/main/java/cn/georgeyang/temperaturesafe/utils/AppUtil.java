@@ -12,6 +12,7 @@ import android.util.Log;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
 import java.util.Random;
 
@@ -104,12 +105,20 @@ public class AppUtil {
 
     public static List<TemperatureDataEntity> getDataListByDate(int year,int month,int day) {
         Random random = new Random();
-        int count = random.nextInt(5000);
+        int count = random.nextInt(3000);
         List<TemperatureDataEntity> ret = new ArrayList<>();
-        for (int i=0;i<count;i++) {
+        Calendar todayZeroTime = Calendar.getInstance();
+        todayZeroTime.set(Calendar.HOUR_OF_DAY,0);
+        todayZeroTime.set(Calendar.MINUTE,0);
+        todayZeroTime.set(Calendar.SECOND,0);
+        Log.d("time",todayZeroTime.getTime().toLocaleString());
+        for (int i=random.nextInt(600)
+             ;i<count;i++) {
             TemperatureDataEntity dataEntity = new TemperatureDataEntity();
             dataEntity.temperature = (float) (random.nextDouble() * 40 + 10);
             dataEntity.type = Vars.Type_C;
+//            dataEntity._addTime = todayZeroTime.getTimeInMillis() + 1000 * 60 * (random.nextInt(600) + 1);
+            dataEntity._addTime = todayZeroTime.getTimeInMillis() + 1000 * 60  * i;
             ret.add(dataEntity);
         }
         return ret;
