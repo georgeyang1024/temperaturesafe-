@@ -35,6 +35,9 @@ public class AppUtil {
             Mdb.init(context);
             settingEntity = Mdb.getInstance().findOne(SettingEntity.class);
         }
+        if (settingEntity==null) {
+            settingEntity = new SettingEntity();
+        }
         return settingEntity;
     }
 
@@ -66,23 +69,43 @@ public class AppUtil {
 
     private static MediaPlayer mediaPlayer;
     public static void playWarning (Context context) {
-//        SoundPool soundPool = new SoundPool(10, AudioManager.STREAM_SYSTEM,5);
-//        soundPool.load(this, R.raw.warning,1);
-//        soundPool.play(1,1, 1, 0, 0, 1);
-
+        Vars.waring = true;
+//        try {
+//            soundPool = new SoundPool(10, AudioManager.STREAM_SYSTEM,5);
+//            soundPool.load(context, R.raw.warning,Vars.WaringTimes);
+//            soundPool.setOnLoadCompleteListener(new SoundPool.OnLoadCompleteListener() {
+//                @Override
+//                public void onLoadComplete(SoundPool soundPool, int sampleId, int status) {
+//                    soundPool.play(1,1, 1, 0,Vars.WaringTimes, 1);
+//                }
+//            });
+//        } catch (Exception e) {
+//
+//        }
         try {
-            if (mediaPlayer==null) {
-                mediaPlayer = MediaPlayer.create(context, R.raw.warning);
-                mediaPlayer.prepare();
-                mediaPlayer.setLooping(true);
+            if (mediaPlayer!=null) {
+                stopPlay(context);
             }
+
+            mediaPlayer = MediaPlayer.create(context, R.raw.warning);
+            mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
+            mediaPlayer.setVolume(1f, 1f);
+//                mediaPlayer.prepare();
+            mediaPlayer.setLooping(true);
             mediaPlayer.start();
+            mediaPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+                @Override
+                public void onCompletion(MediaPlayer mp) {
+                    Vars.waring = false;
+                }
+            });
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
     public static void stopPlay(Context context) {
+        Vars.waring = false;
         if (mediaPlayer!=null) {
             mediaPlayer.stop();
         }
@@ -116,22 +139,31 @@ public class AppUtil {
      * @return
      */
     public static List<TemperatureDataEntity> getDataListByDate(int year,int month,int day) {
-        Random random = new Random();
-        int count = 1000;
-        List<TemperatureDataEntity> ret = new ArrayList<>();
-        Calendar todayZeroTime = Calendar.getInstance();
-        todayZeroTime.set(year,month,day);
-        todayZeroTime.set(Calendar.HOUR_OF_DAY,0);
-        todayZeroTime.set(Calendar.MINUTE,0);
-        todayZeroTime.set(Calendar.SECOND,0);
+        Calendar tagDateZeroTime = Calendar.getInstance();
+        tagDateZeroTime.set(year,month,day);
+        tagDateZeroTime.set(Calendar.HOUR_OF_DAY,0);
+        tagDateZeroTime.set(Calendar.MINUTE,0);
+        tagDateZeroTime.set(Calendar.SECOND,0);
+        Calendar tagDateEndTime = Calendar.getInstance();
+        tagDateEndTime.set(year,month,day);
+        tagDateEndTime.set(Calendar.HOUR_OF_DAY,23);
+        tagDateEndTime.set(Calendar.MINUTE,59);
+        tagDateEndTime.set(Calendar.SECOND,59);
 
-        for (int i=1;i<count;i++) {
-            TemperatureDataEntity dataEntity = new TemperatureDataEntity();
-            dataEntity.temperature = (float) (random.nextDouble() * 40 + 10);
-            dataEntity.type = Vars.Type_C;
-            dataEntity._addTime = todayZeroTime.getTimeInMillis() + 1000 * 60 * i;
-            ret.add(dataEntity);
-        }
+        String where = String.format("_addTime>%s and _addTime<%s",new Object[]{tagDateZeroTime.getTimeInMillis(),tagDateEndTime.getTimeInMillis()});
+        List<TemperatureDataEntity> ret = Mdb.getInstance().findAllbyWhere(TemperatureDataEntity.class,where);
+
+//        Log.d("test","size:" + ret.size());
+//        Random random = new Random();
+//        int count = 1000;
+//        List<TemperatureDataEntity> ret = new ArrayList<>();
+//        for (int i=1;i<count;i++) {
+//            TemperatureDataEntity dataEntity = new TemperatureDataEntity();
+//            dataEntity.temperature = (float) (random.nextDouble() * 40 + 10);
+//            dataEntity.type = Vars.Type_C;
+//            dataEntity._addTime = todayZeroTime.getTimeInMillis() + 1000 * 60 * i;
+//            ret.add(dataEntity);
+//        }
         return ret;
     }
 

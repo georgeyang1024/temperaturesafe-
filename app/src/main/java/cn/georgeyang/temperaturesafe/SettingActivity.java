@@ -69,6 +69,8 @@ public class SettingActivity extends BaseActivity implements View.OnClickListene
         findViewById(R.id.layout_height).setOnClickListener(this);
         findViewById(R.id.layout_low).setOnClickListener(this);
         findViewById(R.id.layout_adjust).setOnClickListener(this);
+        findViewById(R.id.layout_name).setOnClickListener(this);
+        findViewById(R.id.layout_about).setOnClickListener(this);
     }
 
     @Override
@@ -122,6 +124,12 @@ public class SettingActivity extends BaseActivity implements View.OnClickListene
                         tv_abjust.setText(settingEntity.adjustTemperatureValue+"");
                     }
                 });
+                break;
+            case R.id.layout_name:
+                startActivity(new Intent(this,NameMangerActivity.class));
+                break;
+            case R.id.layout_about:
+                startActivity(new Intent(this,AboutActivity.class));
                 break;
         }
     }

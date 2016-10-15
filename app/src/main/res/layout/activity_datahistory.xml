@@ -3,31 +3,42 @@
               android:layout_width="match_parent"
               android:layout_height="match_parent"
               android:orientation="vertical"
+              android:background="@color/white"
 >
     <include layout="@layout/include_backtitle" />
 
-    <RelativeLayout
+
+    <TextView
+        android:id="@+id/tvChoice"
+        android:gravity="center"
+        android:padding="10dp"
+        android:background="@color/gary"
+        android:layout_centerInParent="true"
+        android:layout_alignParentBottom="true"
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:text="选择日期"
+        android:layout_height="wrap_content"/>
 
 
-       <TextView
-           android:id="@+id/tvChoice"
-           android:gravity="center"
-           android:padding="10dp"
-           android:layout_centerInParent="true"
-           android:layout_alignParentBottom="true"
-           android:layout_width="wrap_content"
-           android:text="选择日期"
-           android:layout_height="wrap_content"/>
+    <TextView
+        android:id="@+id/tvName"
+        android:layout_marginTop="8dp"
+        android:gravity="center"
+        android:padding="10dp"
+        android:background="@color/gary"
+        android:layout_centerInParent="true"
+        android:layout_alignParentBottom="true"
+        android:layout_width="match_parent"
+        android:text="选择成员"
+        android:layout_height="wrap_content"/>
 
         <com.github.mikephil.charting.charts.LineChart
             android:id="@+id/chart"
+            android:layout_marginTop="8dp"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_above="@+id/tvChoice"/>
 
-    </RelativeLayout>
 
 
 </LinearLayout>

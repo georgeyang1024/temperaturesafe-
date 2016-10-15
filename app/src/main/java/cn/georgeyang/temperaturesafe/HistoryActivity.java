@@ -36,6 +36,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Random;
 
+import cn.georgeyang.database.Mdb;
 import cn.georgeyang.temperaturesafe.entity.ChartResultVo;
 import cn.georgeyang.temperaturesafe.entity.TemperatureDataEntity;
 import cn.georgeyang.temperaturesafe.utils.AppUtil;
@@ -56,6 +57,7 @@ public class HistoryActivity extends AppCompatActivity implements View.OnClickLi
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        Mdb.init(this);
 
         setContentView(R.layout.activity_datahistory);
         TitleUtil.init(this).setTitle("历史记录").autoBack();
@@ -194,22 +196,23 @@ public class HistoryActivity extends AppCompatActivity implements View.OnClickLi
         }
     }
 
-    //上下左右空隙，便于数据查看
-    private static final int EmptyY = 10,EmptyMin = 5;
+
 
     private void showData(boolean isFirst) {
         dataList = AppUtil.getDataListByDate(selectYesar,selectMonth,selectDay);
-        dataList = AppUtil.getChartListByInterval(dataList,1000*60*5);
+        dataList = AppUtil.getChartListByInterval(dataList,Vars.ShowInterval);
         ChartResultVo result = AppUtil.buildChartList(dataList,selectYesar,selectMonth,selectDay);
 
-        if (result ==null || result.resultList==null || result.resultList.size()<=1) {
+        if (result ==null || result.resultList==null || result.resultList.size()<=0) {
             Toast.makeText(this,"暂无数据",Toast.LENGTH_SHORT).show();
             return;
         }
         tvChoice.setText(String.format("%s-%s-%s",new Object[]{selectYesar+"",selectMonth+"",selectDay+""}));
 
 
-        setChatSize(isFirst,result.minX - EmptyMin,result.maxX + EmptyMin,result.minY-EmptyY,result.maxY+EmptyY);
+//        setChatSize(isFirst,result.minX - Vars.EmptyMin,result.maxX + Vars.EmptyMin,result.minY-EmptyY,result.maxY+EmptyY);
+        setChatSize(isFirst,result.minX - Vars.EmptyMin,result.maxX + Vars.EmptyMin,Vars.MinShowTemperature,Vars.MaxShowTemperature);
+
 
         LineDataSet set1;
 

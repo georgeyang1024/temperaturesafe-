@@ -9,6 +9,7 @@ import android.bluetooth.BluetoothGattService;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.os.Build;
@@ -24,6 +25,8 @@ import java.util.List;
 
 import cn.georgeyang.temperaturesafe.impl.BaseActivity;
 import cn.georgeyang.temperaturesafe.service.BluetoothLeService;
+import cn.georgeyang.temperaturesafe.utils.AppUtil;
+import cn.georgeyang.temperaturesafe.utils.DialogUtil;
 import cn.georgeyang.temperaturesafe.utils.TitleUtil;
 
 public class MainActivity extends BaseActivity implements View.OnClickListener {
@@ -50,6 +53,17 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
             System.out.println("===============");
         }
 
+        findViewById(R.id.tv_check).setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                AppUtil.playWarning(getActivity());
+                return true;
+            }
+        });
+
+        AppUtil.stopPlay(this);
+        AppUtil.stopVibrator();
+
     }
 
     @Override
@@ -57,6 +71,9 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
         super.onDestroy();
         unbindService(mServiceConnection);
         mBluetoothLeService = null;
+
+        AppUtil.stopPlay(getActivity());
+        AppUtil.stopVibrator();
     }
 
     @Override
@@ -88,8 +105,14 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
         if (requestCode==1 && resultCode==RESULT_OK) {
             BluetoothDevice device = data.getParcelableExtra("device");
             mDeviceAddress = device.getAddress();
+
             final boolean result = mBluetoothLeService.connect(mDeviceAddress);
-            Log.d(TAG, "Connect request result=" + result);
+            if (result) {
+                tv_show.setText("正在获取数据");
+            } else {
+                tv_show.setText("连接失败");
+            }
+
         }
     }
 
@@ -122,25 +145,34 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
         super.onReceiverMsg(context, intent, action, id, data);
         if (BluetoothLeService.ACTION_GATT_CONNECTED.equals(action)) {
             mConnected = true;
+            tv_show.setText("已连接");
         } else if (BluetoothLeService.ACTION_GATT_DISCONNECTED.equals(action)) {
             mConnected = false;
+            tv_show.setText("已断开");
         } else if (BluetoothLeService.ACTION_GATT_SERVICES_DISCOVERED.equals(action)) {
             displayGattServices(mBluetoothLeService.getSupportedGattServices());
         } else if (BluetoothLeService.ACTION_DATA_AVAILABLE.equals(action)) {
-             String string = null;
-
              try {
                  byte[] bytes = intent.getByteArrayExtra(BluetoothLeService.EXTRA_DATA);
                  String hexString = string2HexStr(new String(bytes));
-                 Log.d("hex", hexString);
+//                 Log.d("hex", hexString);
                  String[] value = getValue(hexString);
                  tv_show.setText(value[1]);
-                 Log.d("hex",value[1]);
+//                 Log.d("hex",value[1]);
              } catch (Exception e) {
                  e.printStackTrace();
              }
-         }
-
+         } else if (BluetoothLeService.ACTION_START_WARING.equals(action)) {
+            //开始警报
+            Log.d("test","开始报警！");
+            DialogUtil.showOKDialog(getActivity(), "点击取消警报可以取消警报", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    AppUtil.stopPlay(getActivity());
+                    AppUtil.stopVibrator();
+                }
+            });
+        }
     }
 
     private boolean mConnected;
@@ -184,21 +216,21 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
         return sb.toString();
     }
 
-    /**
-     * byte转16进制
-     *
-     * @param b
-     * @return
-     */
-    public static String byte2HexStr(byte[] b) {
-        String stmp = "";
-        StringBuilder sb = new StringBuilder("");
-        for (int n = 0; n < b.length; n++) {
-            stmp = Integer.toHexString(b[n] & 0xFF);
-            sb.append((stmp.length() == 1) ? "0" + stmp : stmp);
-            sb.append(" ");
-        }
-        return sb.toString().toUpperCase().trim();
-    }
+//    /**
+//     * byte转16进制
+//     *
+//     * @param b
+//     * @return
+//     */
+//    public static String byte2HexStr(byte[] b) {
+//        String stmp = "";
+//        StringBuilder sb = new StringBuilder("");
+//        for (int n = 0; n < b.length; n++) {
+//            stmp = Integer.toHexString(b[n] & 0xFF);
+//            sb.append((stmp.length() == 1) ? "0" + stmp : stmp);
+//            sb.append(" ");
+//        }
+//        return sb.toString().toUpperCase().trim();
+//    }
 
 }

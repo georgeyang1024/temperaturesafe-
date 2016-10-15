@@ -12,7 +12,7 @@ public class SettingEntity extends Model {
     public boolean vibrationAlarm,soundAlarm,lostAlarm;
     public float highTemperatureValue = 0,lowTemperatureValue = 50,adjustTemperatureValue = 0;
 //    public float adjustTemperatureValue = 0;
-    public String name = "name12";
+    public String name = "爸爸";
     public long startWarningTime;//允许开始警报的时间点
 
 

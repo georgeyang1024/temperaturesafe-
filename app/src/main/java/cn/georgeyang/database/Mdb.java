@@ -30,7 +30,7 @@ public class Mdb {
     private SQLiteDatabase db;
     private String dbfile;
     private static String dbFileName = "yy.db";
-    private static final boolean debug = true;
+    private static final boolean debug = false;
     private static void log(String msg) {
         if (!debug  ) {
             return;

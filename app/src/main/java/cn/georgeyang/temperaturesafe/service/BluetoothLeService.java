@@ -56,6 +56,7 @@ public class BluetoothLeService extends Service {
     public final static String ACTION_GATT_DISCONNECTED = "com.choicemmed.bledemo.ACTION_GATT_DISCONNECTED";
     public final static String ACTION_GATT_SERVICES_DISCOVERED = "com.choicemmed.bledemo.ACTION_GATT_SERVICES_DISCOVERED";
     public final static String ACTION_DATA_AVAILABLE = "com.choicemmed.bledemo.ACTION_DATA_AVAILABLE";
+    public final static String ACTION_START_WARING = "startWarning";
     public final static String EXTRA_DATA = "com.choicemmed.bledemo.EXTRA_DATA";
 
     public static String CLIENT_CHARACTERISTIC_CONFIG = "00002902-0000-1000-8000-00805f9b34fb";
@@ -141,7 +142,8 @@ public class BluetoothLeService extends Service {
         sendBroadcast(intent);
     }
 
-//    private LinkedList<TemperatureDataEntity> temperatureData = new LinkedList<>();
+    private static long lastRecordTime = 0;
+    private static long unNomalStartTime;
     private void broadcastUpdate(final String action,
                                  final BluetoothGattCharacteristic characteristic) {
         final Intent intent = new Intent(action);
@@ -160,20 +162,31 @@ public class BluetoothLeService extends Service {
             }
             TemperatureDataEntity entity = new TemperatureDataEntity();
             entity.type = type;
+            entity.recordName = settingEntity.name;
             entity.temperature = temperature;
-            entity.save();
-//            temperatureData.add(entity);
-//            if (temperatureData.size()>=100) {
-//                while (!temperatureData.isEmpty()) {
-//                    TemperatureDataEntity data = temperatureData.removeFirst();
-//                    data.save();
-//                }
-//            }
-            if (temperature>=settingEntity.highTemperatureValue && settingEntity.highTemperatureValue!=-1) {
-                startWarining();
+            if (System.currentTimeMillis()>=lastRecordTime+Vars.RecordInterval) {
+                Log.d("test","记录一条消息:" + System.currentTimeMillis());
+                lastRecordTime = System.currentTimeMillis();
+                entity.save();
             }
-            if (temperature<=settingEntity.lowTemperatureValue && settingEntity.lowTemperatureValue!=-1) {
-                startWarining();
+
+            boolean unNormalHight = temperature>=settingEntity.highTemperatureValue && settingEntity.highTemperatureValue>=0;
+            boolean unNormalLow = temperature<=settingEntity.lowTemperatureValue && settingEntity.lowTemperatureValue>=0;
+            boolean unNormal = unNormalHight || unNormalLow;
+            Log.d("test","高温？" + settingEntity.highTemperatureValue);
+            Log.d("test","低温？" + settingEntity.lowTemperatureValue);
+            Log.d("test","高温不正常？" + unNormalHight);
+            Log.d("test","低温不正常？" + unNormalLow);
+            if (unNormal) {
+                Log.d("test","低温不正常！！！");
+                if (unNomalStartTime==0) {
+                    unNomalStartTime = System.currentTimeMillis();
+                }
+                if (System.currentTimeMillis() - unNomalStartTime >Vars.WaringCheckTime) {
+                    startWarining();
+                }
+            } else {
+                unNomalStartTime = 0;
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -195,14 +208,23 @@ public class BluetoothLeService extends Service {
      * 声音震动警报
      */
     private void startWarining() {
+        if (Vars.waring) {
+            return;
+        }
+        boolean bro = false;
         SettingEntity settingEntity = AppUtil.getSettingEntity(this);
         if (settingEntity.isSoundAlarm()) {
             if (System.currentTimeMillis()>=settingEntity.startWarningTime) {
                 AppUtil.playWarning(this);
+                bro = true;
             }
         }
         if (settingEntity.isVibrationAlarm()) {
             AppUtil.startVibrator(this);
+            bro = true;
+        }
+        if (bro) {
+            broadcastUpdate(ACTION_START_WARING);
         }
     }
 
@@ -312,6 +334,7 @@ public class BluetoothLeService extends Service {
         // We want to directly connect to the device, so we are setting the
         // autoConnect
         // parameter to false.
+        //method don't support connectGatt in low 4.3
         mBluetoothGatt = device.connectGatt(this, false, mGattCallback);
         Log.d(TAG, "Trying to create a new connection.");
         mBluetoothDeviceAddress = address;

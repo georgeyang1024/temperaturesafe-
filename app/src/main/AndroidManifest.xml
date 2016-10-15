@@ -33,6 +33,10 @@
             >
         </activity>
 
+        <activity android:name=".NameMangerActivity"
+            >
+        </activity>
+
         <activity android:name=".LineChartActivity2"/>
 
         <activity android:name=".SelectDriveActivity"></activity>

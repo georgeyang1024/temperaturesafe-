@@ -35,6 +35,7 @@ import cn.georgeyang.temperaturesafe.adapter.BuleToolAdapter;
 import cn.georgeyang.temperaturesafe.impl.BaseActivity;
 import cn.georgeyang.temperaturesafe.utils.L;
 import cn.georgeyang.temperaturesafe.utils.TitleUtil;
+import cn.georgeyang.temperaturesafe.widget.DeviceScanEmptyView;
 
 /**
  * Created by george.yang on 16/9/1.
@@ -55,25 +56,28 @@ public class SelectDriveActivity extends BaseActivity implements AdapterView.OnI
         listView.setAdapter(mAdapter);
         listView.setOnItemClickListener(this);
 
-
         BluetoothAdapter adapter = getBuletoothAdapter();
 
         //adapter不等于null，说明本机有蓝牙设备
         if(adapter != null) {
-            System.out.println("本机有蓝牙设备！");
             //如果蓝牙设备未开启
             if (!adapter.isEnabled()) {
                 Intent intent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
                 //请求开启蓝牙设备
                 startActivityForResult(intent, 1);
             } else {
+                showMessage("开始扫描...");
                 if (!adapter.isDiscovering()){
-                    Log.i("test", "start Discovering");
                     adapter.startDiscovery();
                     deviceList.clear();
                 }
             }
         }
+    }
+
+
+    private void showMessage (String msg) {
+        Toast.makeText(this,msg,Toast.LENGTH_LONG).show();
     }
 
     private BluetoothAdapter bluetoothAdapter;
@@ -100,30 +104,26 @@ public class SelectDriveActivity extends BaseActivity implements AdapterView.OnI
                     if (!deviceList.contains(btDevice)) {
                         deviceList.add(btDevice);
                         mAdapter.notifyDataSetChanged();
-                    } else {
-                        L.showLog("contains!!");
                     }
                 }
                 break;
         }
     }
 
-
-
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == 1) {
             if (resultCode == RESULT_OK) {
-                Toast.makeText(this, "蓝牙已经开启", Toast.LENGTH_SHORT).show();
+                showMessage ( "蓝牙已经开启");
                 BluetoothAdapter adapter = getBuletoothAdapter();
                 if (!adapter.isDiscovering()){
-                    Log.i("test", "start Discovering");
+                    showMessage("扫描中...");
                     adapter.startDiscovery();
                     deviceList.clear();
                 }
             } else if (resultCode == RESULT_CANCELED) {
-                Toast.makeText(this, "不允许蓝牙开启", Toast.LENGTH_SHORT).show();
+                showMessage( "不允许蓝牙开启");
                 finish();
             }
         }
@@ -134,9 +134,14 @@ public class SelectDriveActivity extends BaseActivity implements AdapterView.OnI
         final BluetoothDevice device = deviceList.get(position);
         getBuletoothAdapter().cancelDiscovery();
         Intent intent = new Intent();
-        intent.putExtra("device",device);
-        setResult(RESULT_OK,intent);
+        intent.putExtra("device", device);
+        setResult(RESULT_OK, intent);
         finish();
+    }
+
+
+
+
 
 //        new Thread() {
 //            @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
@@ -220,5 +225,5 @@ public class SelectDriveActivity extends BaseActivity implements AdapterView.OnI
 //                }
 //            }.start();
 
-    }
+//    }
 }
