@@ -36,6 +36,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Random;
 
+import cn.georgeyang.temperaturesafe.entity.ChartResultVo;
 import cn.georgeyang.temperaturesafe.entity.TemperatureDataEntity;
 import cn.georgeyang.temperaturesafe.utils.AppUtil;
 import cn.georgeyang.temperaturesafe.utils.TitleUtil;
@@ -193,89 +194,34 @@ public class HistoryActivity extends AppCompatActivity implements View.OnClickLi
         }
     }
 
+    //上下左右空隙，便于数据查看
+    private static final int EmptyY = 10,EmptyMin = 5;
 
-    private void showData(boolean isFrist) {
+    private void showData(boolean isFirst) {
         dataList = AppUtil.getDataListByDate(selectYesar,selectMonth,selectDay);
-        if (dataList==null || dataList.size()<=1) {
+        dataList = AppUtil.getChartListByInterval(dataList,1000*60*5);
+        ChartResultVo result = AppUtil.buildChartList(dataList,selectYesar,selectMonth,selectDay);
+
+        if (result ==null || result.resultList==null || result.resultList.size()<=1) {
             Toast.makeText(this,"暂无数据",Toast.LENGTH_SHORT).show();
             return;
         }
         tvChoice.setText(String.format("%s-%s-%s",new Object[]{selectYesar+"",selectMonth+"",selectDay+""}));
-        float minX = Integer.MAX_VALUE,maxX = Integer.MIN_VALUE,minY = Integer.MAX_VALUE,maxY=Integer.MIN_VALUE;
-        ArrayList<Entry> values = new ArrayList<Entry>();
-        //15分钟为一个单位
-        Calendar todayZeroTime = Calendar.getInstance();
-        todayZeroTime.set(Calendar.HOUR_OF_DAY,0);
-        todayZeroTime.set(Calendar.MINUTE,0);
-        todayZeroTime.set(Calendar.SECOND,0);
-        long zeroTime = todayZeroTime.getTimeInMillis();
-        for (TemperatureDataEntity entity:dataList) {
-            //今天运行了多少毫秒
-            long todayMillis =  entity._addTime - zeroTime;
-            if (todayMillis<=0 || todayMillis>=1000*60*60*24) {
-                continue;
-            }
-            //这个时间运行了多少分钟
-            long todayMINUTE = todayMillis / (1000*60);
-            if (todayMINUTE%15==0) {
-                if (entity.temperature < minY) {
-                    minY = entity.temperature;
-                }
-                if (entity.temperature> maxY) {
-                    maxY = entity.temperature;
-                }
-
-                //刚好15分钟
-                if (todayMINUTE < minX) {
-                    minX = todayMINUTE;
-                }
-                if (todayMINUTE > maxX) {
-                    maxX = todayMINUTE;
-                }
-                Entry entry = new Entry(todayMINUTE,entity.temperature);
-                values.add(entry);
-            }
-        }
-
-        //pass
-//        Random random = new Random();
-//        int removeIndex = random.nextInt(values.size()/3);
-//        for (int i = 0;i<5;i++) {
-//            try {
-//                Log.d("test","remove:" + removeIndex);
-//
-//                values.remove(removeIndex);
-//            } catch (Exception e) {
-//
-//            }
-//        }
 
 
-
-//        int range = 40;
-//        int count = 100;
-//        ArrayList<Entry> values = new ArrayList<Entry>();
-//        for (int i = 0; i < count; i++) {
-//            float val = (float) (Math.random() * range) + 3;
-//            values.add(new Entry(i, val));
-//        }
-
-//        minX = minX / 1000 * 60 * 60;//5分钟为一个单位
-//        maxX = maxX / 1000 * 60 * 60;
-        setChatSize(isFrist,minX,maxX,minY-10,maxY+10);
+        setChatSize(isFirst,result.minX - EmptyMin,result.maxX + EmptyMin,result.minY-EmptyY,result.maxY+EmptyY);
 
         LineDataSet set1;
 
         if (mChart.getData() != null &&
                 mChart.getData().getDataSetCount() > 0) {
             set1 = (LineDataSet)mChart.getData().getDataSetByIndex(0);
-            set1.setValues(values);
+            set1.setValues(result.resultList);
             mChart.getData().notifyDataChanged();
             mChart.notifyDataSetChanged();
         } else {
-            set1 = new LineDataSet(values, "温度-时间表");
+            set1 = new LineDataSet(result.resultList, "温度-时间表");
 
-            // set the line to be drawn like this "- - - - - -"
             set1.enableDashedLine(10f, 5f, 0f);
             set1.enableDashedHighlightLine(10f, 5f, 0f);
             set1.setColor(Color.BLACK);
