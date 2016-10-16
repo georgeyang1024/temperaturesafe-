@@ -22,4 +22,9 @@ public class Vars {
     //上下左右空隙，便于数据查看
     public static final int EmptyY = 10,EmptyMin = 5;
     public static final int MinShowTemperature = 32,MaxShowTemperature = 42;
+
+    //起始报警温度
+    public static long unNomalStartTime;
+    public static float startLowWarningTemp;
+    public static float startHeightWaringTemp;
 }

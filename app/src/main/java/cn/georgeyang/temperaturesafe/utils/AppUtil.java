@@ -27,6 +27,7 @@ import cn.georgeyang.temperaturesafe.entity.RecorderEntity;
 import cn.georgeyang.temperaturesafe.entity.SettingEntity;
 import cn.georgeyang.temperaturesafe.entity.TemperatureDataEntity;
 import cn.georgeyang.temperaturesafe.service.BluetoothLeService;
+import cn.georgeyang.utils.DialogUtil;
 
 /**
  * Created by george.yang on 16/9/4.
@@ -42,8 +43,9 @@ public class AppUtil {
             //first Install
             new RecorderEntity("爸爸").save();
             new RecorderEntity("妈妈").save();
-            new RecorderEntity("爷爷").save();
-            new RecorderEntity("奶奶").save();
+            new RecorderEntity("儿子").save();
+            new RecorderEntity("女儿").save();
+            settingEntity.save();
         }
         return settingEntity;
     }
@@ -75,44 +77,53 @@ public class AppUtil {
     }
 
     private static MediaPlayer mediaPlayer;
+    private static SoundPool soundPool;
     public static void playWarning (Context context) {
         Vars.waring = true;
-//        try {
-//            soundPool = new SoundPool(10, AudioManager.STREAM_SYSTEM,5);
-//            soundPool.load(context, R.raw.warning,Vars.WaringTimes);
-//            soundPool.setOnLoadCompleteListener(new SoundPool.OnLoadCompleteListener() {
-//                @Override
-//                public void onLoadComplete(SoundPool soundPool, int sampleId, int status) {
-//                    soundPool.play(1,1, 1, 0,Vars.WaringTimes, 1);
-//                }
-//            });
-//        } catch (Exception e) {
+//        if (Vars.WaringTimes>0) {
+//            try {
+//                soundPool = new SoundPool(10, AudioManager.STREAM_SYSTEM,5);
+//                soundPool.load(context, R.raw.warning,Vars.WaringTimes);
+//                soundPool.setOnLoadCompleteListener(new SoundPool.OnLoadCompleteListener() {
+//                    @Override
+//                    public void onLoadComplete(SoundPool soundPool, int sampleId, int status) {
+//                        soundPool.play(1,1, 1, 0,Vars.WaringTimes, 1);
+//                    }
+//                });
+//            } catch (Exception e) {
 //
-//        }
-        try {
-            if (mediaPlayer!=null) {
-                stopPlay(context);
-            }
-
-            mediaPlayer = MediaPlayer.create(context, R.raw.warning);
-            mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
-            mediaPlayer.setVolume(1f, 1f);
-//                mediaPlayer.prepare();
-            mediaPlayer.setLooping(true);
-            mediaPlayer.start();
-            mediaPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
-                @Override
-                public void onCompletion(MediaPlayer mp) {
-                    Vars.waring = false;
+//            }
+//        } else {
+            try {
+                if (mediaPlayer!=null) {
+                    stopPlay(context);
                 }
-            });
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+
+                mediaPlayer = MediaPlayer.create(context, R.raw.warning);
+                mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
+                mediaPlayer.setVolume(1f, 1f);
+//                mediaPlayer.prepare();
+                mediaPlayer.setLooping(false);
+                mediaPlayer.start();
+                mediaPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+                    @Override
+                    public void onCompletion(MediaPlayer mp) {
+                        Vars.waring = false;
+                        try {
+                            DialogUtil.getDialog().dismiss();
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    }
+                });
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
     }
 
     public static void stopPlay(Context context) {
         Vars.waring = false;
+//        Vars.unNomalStartTime = 0;//del for 30S
         if (mediaPlayer!=null) {
             mediaPlayer.stop();
         }
@@ -129,6 +140,8 @@ public class AppUtil {
     }
 
     public static void stopVibrator() {
+        Vars.waring = false;
+//        Vars.unNomalStartTime = 0;//del for 30s
         try {
             vibrator.cancel();
         } catch (Exception e) {

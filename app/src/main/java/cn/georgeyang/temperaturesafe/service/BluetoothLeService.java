@@ -56,6 +56,7 @@ public class BluetoothLeService extends Service {
     public final static String ACTION_GATT_DISCONNECTED = "com.choicemmed.bledemo.ACTION_GATT_DISCONNECTED";
     public final static String ACTION_GATT_SERVICES_DISCOVERED = "com.choicemmed.bledemo.ACTION_GATT_SERVICES_DISCOVERED";
     public final static String ACTION_DATA_AVAILABLE = "com.choicemmed.bledemo.ACTION_DATA_AVAILABLE";
+    public final static String ACTION_DATA_AVAILABLE_NEW = "com.choicemmed.bledemo.ACTION_DATA_AVAILABLE_NEW";
     public final static String ACTION_START_WARING = "startWarning";
     public final static String EXTRA_DATA = "com.choicemmed.bledemo.EXTRA_DATA";
 
@@ -85,17 +86,15 @@ public class BluetoothLeService extends Service {
                 Log.i(TAG, "Disconnected from GATT server.");
 
                 lostWarning();
-
                 broadcastUpdate(intentAction);
             }
         }
 
         @Override
         public void onServicesDiscovered(BluetoothGatt gatt, int status) {
+            Log.w(TAG, "onServicesDiscovered: " + status);
             if (status == BluetoothGatt.GATT_SUCCESS) {
                 broadcastUpdate(ACTION_GATT_SERVICES_DISCOVERED);
-            } else {
-                Log.w(TAG, "onServicesDiscovered received: " + status);
             }
         }
 
@@ -143,7 +142,7 @@ public class BluetoothLeService extends Service {
     }
 
     private static long lastRecordTime = 0;
-    private static long unNomalStartTime;
+//    private static long unNomalStartTime;
     private void broadcastUpdate(final String action,
                                  final BluetoothGattCharacteristic characteristic) {
         final Intent intent = new Intent(action);
@@ -153,6 +152,7 @@ public class BluetoothLeService extends Service {
 
         SettingEntity settingEntity = AppUtil.getSettingEntity(this);
         String[] strings = AppUtil.getValue(heartRate);
+
         try {
             float temperature = Float.valueOf(strings[1]) + settingEntity.adjustTemperatureValue;
             int type = Integer.valueOf(strings[0]);
@@ -160,38 +160,50 @@ public class BluetoothLeService extends Service {
                 //摄氏度(℃)=（华氏度(℉)-32）÷1.8。
                 temperature = ( temperature - 32 ) / 1.8f;
             }
+
+            Intent intentNew = new Intent(ACTION_DATA_AVAILABLE_NEW);
+            intentNew.putExtra(EXTRA_DATA,strings);
+            intentNew.putExtra("temperature",temperature);
+            sendBroadcast(intentNew);
+
+
             TemperatureDataEntity entity = new TemperatureDataEntity();
             entity.type = type;
             entity.recordId = settingEntity.recorderId;
             entity.temperature = temperature;
             if (System.currentTimeMillis()>=lastRecordTime+Vars.RecordInterval) {
-                Log.d("test","记录一条消息:" + System.currentTimeMillis());
+                //记录一条记录
                 lastRecordTime = System.currentTimeMillis();
                 entity.save();
             }
 
             boolean unNormalHight = temperature>=settingEntity.highTemperatureValue && settingEntity.highTemperatureValue>=0;
-            boolean unNormalLow = temperature<=settingEntity.lowTemperatureValue && settingEntity.lowTemperatureValue>=0;
+            boolean unNormalLow = settingEntity.lowAlarm && temperature<=settingEntity.lowTemperatureValue && settingEntity.lowTemperatureValue>=0;
             boolean unNormal = unNormalHight || unNormalLow;
-            Log.d("test","高温？" + settingEntity.highTemperatureValue);
-            Log.d("test","低温？" + settingEntity.lowTemperatureValue);
-            Log.d("test","高温不正常？" + unNormalHight);
-            Log.d("test","低温不正常？" + unNormalLow);
+//            Log.d("test","高温？" + settingEntity.highTemperatureValue);
+//            Log.d("test","低温？" + settingEntity.lowTemperatureValue);
+//            Log.d("test","高温不正常？" + unNormalHight);
+//            Log.d("test","低温不正常？" + unNormalLow);
             if (unNormal) {
-                Log.d("test","低温不正常！！！");
-                if (unNomalStartTime==0) {
-                    unNomalStartTime = System.currentTimeMillis();
+//                Log.d("test","低温不正常！！！");
+                if (Vars.unNomalStartTime==0) {
+                    Vars.unNomalStartTime = System.currentTimeMillis();
                 }
-                if (System.currentTimeMillis() - unNomalStartTime >Vars.WaringCheckTime) {
+                if (System.currentTimeMillis() - Vars.unNomalStartTime > Vars.WaringCheckTime) {
                     startWarining();
                 }
+                if (!unNormalHight) {
+                    Vars.startHeightWaringTemp = temperature;
+                }
+                if (!unNormalLow) {
+                    Vars.startLowWarningTemp = temperature;
+                }
             } else {
-                unNomalStartTime = 0;
+                Vars.unNomalStartTime = 0;
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
-
     }
 
     /**
@@ -211,19 +223,24 @@ public class BluetoothLeService extends Service {
         if (Vars.waring) {
             return;
         }
-        boolean bro = false;
+
         SettingEntity settingEntity = AppUtil.getSettingEntity(this);
+        if (System.currentTimeMillis() < settingEntity.startWarningTime) {
+            //这个时间内不允许报警
+            return;
+        }
+
+        boolean bro = false;
         if (settingEntity.isSoundAlarm()) {
-            if (System.currentTimeMillis()>=settingEntity.startWarningTime) {
-                AppUtil.playWarning(this);
-                bro = true;
-            }
+            AppUtil.playWarning(this);
+            bro = true;
         }
         if (settingEntity.isVibrationAlarm()) {
             AppUtil.startVibrator(this);
             bro = true;
         }
         if (bro) {
+            Vars.waring = true;
             broadcastUpdate(ACTION_START_WARING);
         }
     }

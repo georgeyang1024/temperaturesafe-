@@ -43,6 +43,7 @@ import java.util.Random;
 import cn.georgeyang.database.Mdb;
 import cn.georgeyang.temperaturesafe.entity.ChartResultVo;
 import cn.georgeyang.temperaturesafe.entity.RecorderEntity;
+import cn.georgeyang.temperaturesafe.entity.SettingEntity;
 import cn.georgeyang.temperaturesafe.entity.TemperatureDataEntity;
 import cn.georgeyang.temperaturesafe.utils.AppUtil;
 import cn.georgeyang.temperaturesafe.utils.TitleUtil;
@@ -79,11 +80,12 @@ public class HistoryActivity extends AppCompatActivity implements View.OnClickLi
         selectDay = calendar.get(Calendar.DAY_OF_MONTH);
 
         recorderList = Mdb.getInstance().findAll(RecorderEntity.class);
-        try {
-            selectRecorder = recorderList.get(0);
-        } catch (Exception e) {
-
+        SettingEntity settingEntity = AppUtil.getSettingEntity(this);
+        selectRecorder = Mdb.getInstance().findOnebyWhere(RecorderEntity.class,"_id=" + settingEntity.recorderId);
+        if (selectRecorder==null) {
+            selectRecorder = new RecorderEntity("默认");
         }
+
         initChart();
         showData(true);
     }
@@ -174,7 +176,7 @@ public class HistoryActivity extends AppCompatActivity implements View.OnClickLi
         leftAxis.removeAllLimitLines(); // reset all limit lines to avoid overlapping lines
         leftAxis.setAxisMinimum(startY);
         leftAxis.setAxisMaximum(endY);
-        leftAxis.enableGridDashedLine(5f, 10f, 0f);
+        leftAxis.enableGridDashedLine(10f, 10f, 0f);
         leftAxis.setDrawZeroLine(false);
 
         // limit lines are drawn behind data (and not on top)
@@ -201,7 +203,7 @@ public class HistoryActivity extends AppCompatActivity implements View.OnClickLi
         tvName.setText(selectRecorder.name);
 
         //db.rawQuery("SELECT * FROM myTable WHERE myColumn IS NULL", null);
-        Mdb.getInstance().getdb().execSQL("UPDATE TemperatureDataEntity SET recordId=? WHERE recordId IS NULL",new String[]{selectRecorder._id+""});
+        Mdb.getInstance().getdb().execSQL("UPDATE TemperatureDataEntity SET recordId=? WHERE recordId IS NULL",new Object[]{selectRecorder._id+""});
         dataList = AppUtil.getDataListByDate(selectYear,selectMonth,selectDay,selectRecorder._id);
         dataList = AppUtil.getChartListByInterval(dataList,Vars.ShowInterval);
         ChartResultVo result = AppUtil.buildChartList(dataList,selectYear,selectMonth,selectDay);
@@ -244,7 +246,7 @@ public class HistoryActivity extends AppCompatActivity implements View.OnClickLi
             set1.setLineWidth(2f);
             set1.setCircleRadius(3f);
             set1.setFillAlpha(65);
-            set1.setFillColor(ColorTemplate.getHoloBlue());
+            set1.setFillColor(Color.rgb(51, 181, 229));
             set1.setHighLightColor(Color.rgb(244, 117, 117));
             set1.setDrawCircleHole(false);
 
@@ -258,13 +260,14 @@ public class HistoryActivity extends AppCompatActivity implements View.OnClickLi
                 set1.setFillColor(Color.BLACK);
             }
 
+
             ArrayList<ILineDataSet> dataSets = new ArrayList<ILineDataSet>();
             dataSets.add(set1); // add the datasets
 
             // create a data object with the datasets
             LineData data = new LineData(dataSets);
 
-            // set data
+//             set data
             mChart.setData(data);
         }
     }

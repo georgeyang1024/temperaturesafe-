@@ -33,6 +33,7 @@ import java.util.UUID;
 
 import cn.georgeyang.temperaturesafe.adapter.BuleToolAdapter;
 import cn.georgeyang.temperaturesafe.impl.BaseActivity;
+import cn.georgeyang.temperaturesafe.receiver.AppReceiver;
 import cn.georgeyang.temperaturesafe.utils.L;
 import cn.georgeyang.temperaturesafe.utils.TitleUtil;
 import cn.georgeyang.temperaturesafe.widget.DeviceScanEmptyView;
@@ -106,6 +107,9 @@ public class SelectDriveActivity extends BaseActivity implements AdapterView.OnI
                         mAdapter.notifyDataSetChanged();
                     }
                 }
+                break;
+            case BluetoothAdapter.ACTION_DISCOVERY_FINISHED:
+                showMessage( "扫描完成!");
                 break;
         }
     }

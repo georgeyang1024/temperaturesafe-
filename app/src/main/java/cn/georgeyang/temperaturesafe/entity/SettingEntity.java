@@ -9,8 +9,8 @@ import cn.georgeyang.database.Model;
  */
 @SuppressLint("ParcelCreator")
 public class SettingEntity extends Model {
-    public boolean vibrationAlarm,soundAlarm,lostAlarm;
-    public float highTemperatureValue = 0,lowTemperatureValue = 50,adjustTemperatureValue = 0;
+    public boolean vibrationAlarm = true,soundAlarm = true,lostAlarm,lowAlarm;
+    public float highTemperatureValue = 38.5f,lowTemperatureValue = 0f,adjustTemperatureValue = 0;
 //    public float adjustTemperatureValue = 0;
     public int recorderId = 1;
     public long startWarningTime;//允许开始警报的时间点

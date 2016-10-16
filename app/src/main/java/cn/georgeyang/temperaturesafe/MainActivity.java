@@ -3,6 +3,7 @@ package cn.georgeyang.temperaturesafe;
 import android.annotation.TargetApi;
 import android.app.Activity;
 import android.app.ActivityManager;
+import android.app.AlertDialog;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothGattCharacteristic;
 import android.bluetooth.BluetoothGattService;
@@ -21,9 +22,13 @@ import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import cn.georgeyang.database.Mdb;
+import cn.georgeyang.temperaturesafe.entity.RecorderEntity;
+import cn.georgeyang.temperaturesafe.entity.SettingEntity;
+import cn.georgeyang.temperaturesafe.entity.TemperatureDataEntity;
 import cn.georgeyang.temperaturesafe.impl.BaseActivity;
 import cn.georgeyang.temperaturesafe.service.BluetoothLeService;
 import cn.georgeyang.temperaturesafe.utils.AppUtil;
@@ -32,19 +37,24 @@ import cn.georgeyang.utils.DialogUtil;
 
 public class MainActivity extends BaseActivity implements View.OnClickListener {
     private String mDeviceAddress;
-    private TextView tv_show;
+    private TextView tv_show,tvRecorder;
+    private List<RecorderEntity> recorderList;
+    private SettingEntity settingEntity;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         Mdb.init(this);
+        Mdb.getInstance().updataTable(TemperatureDataEntity.class);
 
         TitleUtil.init(this).setTitle(getResources().getString(R.string.app_name)).autoGoSetting();
 
         findViewById(R.id.tv_check).setOnClickListener(this);
         findViewById(R.id.layout_check).setOnClickListener(this);
         tv_show = (TextView) findViewById(R.id.tv_show);
+        tvRecorder = (TextView) findViewById(R.id.tvRecorder);
+        tvRecorder.setOnClickListener(this);
 
         Intent gattServiceIntent = new Intent(this, BluetoothLeService.class);
         boolean bll = bindService(gattServiceIntent, mServiceConnection,
@@ -63,9 +73,9 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
             }
         });
 
+
         AppUtil.stopPlay(this);
         AppUtil.stopVibrator();
-
     }
 
     @Override
@@ -85,6 +95,19 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
             final boolean result = mBluetoothLeService.connect(mDeviceAddress);
             Log.d(TAG, "Connect request result=" + result);
         }
+
+        //name show
+        settingEntity = AppUtil.getSettingEntity(this);
+        recorderList = Mdb.getInstance().findAll(RecorderEntity.class);
+        RecorderEntity choiceRecorder = Mdb.getInstance().findOnebyWhere(RecorderEntity.class,"_id=" + settingEntity.recorderId);
+        if (choiceRecorder==null) {
+            choiceRecorder = new RecorderEntity("默认");
+        }
+        tvRecorder.setText(choiceRecorder.name);
+
+        if (Vars.waring) {
+            waringDialog();
+        }
     }
 
 
@@ -98,6 +121,26 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
             case R.id.layout_check:
                 startActivityForResult(new Intent(MainActivity.this,SelectDriveActivity.class),1);
                 break;
+            case R.id.tvRecorder:
+                    List<String> recodeList = new ArrayList<>();
+                    for (RecorderEntity entity:recorderList) {
+                        recodeList.add(entity.name);
+                    }
+                    String[] recodeNames = recodeList.toArray(new String[recodeList.size()]);
+
+                AlertDialog.Builder builder = new AlertDialog.Builder(this);
+                builder.setTitle("请选择成员");
+                builder.setItems(recodeNames, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        RecorderEntity recorderEntity = recorderList.get(which);
+                        tvRecorder.setText(recorderEntity.name);
+                        settingEntity.recorderId = recorderEntity._id;
+                        AppUtil.setSettingEntity(settingEntity);
+                    }
+                });
+                builder.show();
+                break;
         }
     }
 
@@ -108,7 +151,19 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
             BluetoothDevice device = data.getParcelableExtra("device");
             mDeviceAddress = device.getAddress();
 
-            final boolean result = mBluetoothLeService.connect(mDeviceAddress);
+            boolean result = mBluetoothLeService.connect(mDeviceAddress);
+
+//            device.getUuids()
+//            uuid = gattCharacteristic.getUuid().toString();
+//            Log.d("test","BluetoothGattCharacteristic:" + uuid);
+//            if (uuid.contains("2a1c-")) {
+//                Log.e("console", "2gatt Characteristic: " + uuid);
+//                mBluetoothLeService.setCharacteristicNotification(gattCharacteristic, true);
+//                mBluetoothLeService.readCharacteristic(gattCharacteristic);
+//            }
+
+
+            Log.i("test","连接结果:" + result);
             if (result) {
                 tv_show.setText("正在获取数据");
             } else {
@@ -154,27 +209,48 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
         } else if (BluetoothLeService.ACTION_GATT_SERVICES_DISCOVERED.equals(action)) {
             displayGattServices(mBluetoothLeService.getSupportedGattServices());
         } else if (BluetoothLeService.ACTION_DATA_AVAILABLE.equals(action)) {
-             try {
-                 byte[] bytes = intent.getByteArrayExtra(BluetoothLeService.EXTRA_DATA);
-                 String hexString = string2HexStr(new String(bytes));
-//                 Log.d("hex", hexString);
-                 String[] value = getValue(hexString);
-                 tv_show.setText(value[1]);
-//                 Log.d("hex",value[1]);
-             } catch (Exception e) {
-                 e.printStackTrace();
-             }
+//             try {
+//                 byte[] bytes = intent.getByteArrayExtra(BluetoothLeService.EXTRA_DATA);
+//                 String hexString = string2HexStr(new String(bytes));
+////                 Log.d("hex", hexString);
+//                 String[] value = getValue(hexString);
+//                 tv_show.setText(value[1]);
+////                 Log.d("hex",value[1]);
+//             } catch (Exception e) {
+//                 e.printStackTrace();
+//             }
+        } else if (BluetoothLeService.ACTION_DATA_AVAILABLE_NEW.equals(action)) {
+//            String[] servalues = intent.getStringArrayExtra(BluetoothLeService.EXTRA_DATA);
+            float temperature = intent.getFloatExtra("temperature",0);
+            String temp = String.format("%.1f", temperature);
+            tv_show.setText( temp);
+
          } else if (BluetoothLeService.ACTION_START_WARING.equals(action)) {
             //开始警报
             Log.d("test","开始报警！");
-            DialogUtil.showOKDialog(getActivity(), "点击取消警报可以取消警报", new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialog, int which) {
-                    AppUtil.stopPlay(getActivity());
-                    AppUtil.stopVibrator();
-                }
-            });
+           waringDialog();
         }
+    }
+
+    private void waringDialog() {
+        if (!Vars.waring) {
+            return;
+        }
+        DialogUtil.showYNDialog(getActivity(), "点击确定取消警报", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                AppUtil.stopPlay(getActivity());
+                AppUtil.stopVibrator();
+                Vars.unNomalStartTime = 0;
+                DialogUtil.showYNDialog(getActivity(), "是否需要设置30分钟后再报警?", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        settingEntity.startWarningTime = System.currentTimeMillis() + 1000 * 60 * 30;
+                        AppUtil.setSettingEntity(settingEntity);
+                    }
+                });
+            }
+        });
     }
 
     private boolean mConnected;
@@ -200,23 +276,23 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
         }
     }
 
-    private String[] getValue(String hex) {
-        String tmp = hex.substring(4,6) + hex.substring(2,4);
-        int v = Integer.parseInt(tmp,16);
-        float v2 = v/10f;
-        return new String[]{Integer.valueOf(hex.substring(0,2))  + "",v2+""};
-    }
-
-    private static String hexString="0123456789ABCDEF";
-    public static String string2HexStr(String str) {
-        byte[] bytes=str.getBytes();
-        StringBuilder sb=new StringBuilder(bytes.length*2);
-        for(int i=0;i<bytes.length;i++) {
-            sb.append(hexString.charAt((bytes[i]&0xf0)>>4));
-            sb.append(hexString.charAt((bytes[i]&0x0f)>>0));
-        }
-        return sb.toString();
-    }
+//    private String[] getValue(String hex) {
+//        String tmp = hex.substring(4,6) + hex.substring(2,4);
+//        int v = Integer.parseInt(tmp,16);
+//        float v2 = v/10f;
+//        return new String[]{Integer.valueOf(hex.substring(0,2))  + "",v2+""};
+//    }
+//
+//    private static String hexString="0123456789ABCDEF";
+//    public static String string2HexStr(String str) {
+//        byte[] bytes=str.getBytes();
+//        StringBuilder sb=new StringBuilder(bytes.length*2);
+//        for(int i=0;i<bytes.length;i++) {
+//            sb.append(hexString.charAt((bytes[i]&0xf0)>>4));
+//            sb.append(hexString.charAt((bytes[i]&0x0f)>>0));
+//        }
+//        return sb.toString();
+//    }
 
 //    /**
 //     * byte转16进制

@@ -15,6 +15,10 @@ import android.widget.Toast;
  */
 public class DialogUtil {
     private static AlertDialog alertDialog;
+
+    public static AlertDialog getDialog () {
+        return alertDialog;
+    }
     public static void showInfoDialog (Activity activity,String title,String tip) {
         showDialog(activity,true,title,tip,"确定","",null,null);
     }

@@ -43,6 +43,8 @@ public abstract class BaseActivity extends AppCompatActivity implements Receiver
         intentFilter.addAction(BluetoothLeService.ACTION_GATT_SERVICES_DISCOVERED);
         intentFilter.addAction(BluetoothLeService.ACTION_DATA_AVAILABLE);
         intentFilter.addAction(BluetoothLeService.EXTRA_DATA);
+        intentFilter.addAction(BluetoothLeService.ACTION_START_WARING);
+        intentFilter.addAction(BluetoothLeService.ACTION_DATA_AVAILABLE_NEW);
     }
 
     @Override
