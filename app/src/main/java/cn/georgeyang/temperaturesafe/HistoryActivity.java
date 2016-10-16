@@ -1,9 +1,12 @@
 package cn.georgeyang.temperaturesafe;
 
+import android.app.AlertDialog;
 import android.app.DatePickerDialog;
+import android.content.DialogInterface;
 import android.graphics.Color;
 import android.graphics.DashPathEffect;
 import android.graphics.drawable.Drawable;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.content.ContextCompat;
@@ -27,6 +30,7 @@ import com.github.mikephil.charting.data.Entry;
 import com.github.mikephil.charting.data.LineData;
 import com.github.mikephil.charting.data.LineDataSet;
 import com.github.mikephil.charting.interfaces.datasets.ILineDataSet;
+import com.github.mikephil.charting.utils.ColorTemplate;
 import com.github.mikephil.charting.utils.Utils;
 
 import java.util.ArrayList;
@@ -38,6 +42,7 @@ import java.util.Random;
 
 import cn.georgeyang.database.Mdb;
 import cn.georgeyang.temperaturesafe.entity.ChartResultVo;
+import cn.georgeyang.temperaturesafe.entity.RecorderEntity;
 import cn.georgeyang.temperaturesafe.entity.TemperatureDataEntity;
 import cn.georgeyang.temperaturesafe.utils.AppUtil;
 import cn.georgeyang.temperaturesafe.utils.TitleUtil;
@@ -49,7 +54,7 @@ import cn.georgeyang.temperaturesafe.widget.AppPickerDialog;
 public class HistoryActivity extends AppCompatActivity implements View.OnClickListener {
 
     private LineChart mChart;
-    private TextView tvChoice;
+    private TextView tvChoice,tvName;
     private Spinner mSpinner;
     private ArrayAdapter adapter;
 //    private static final String[] datas = new String[]{"今天","昨天","前天","三天前","四天前","五天前","六天前","七天前","上一周"};
@@ -64,33 +69,21 @@ public class HistoryActivity extends AppCompatActivity implements View.OnClickLi
         mChart = (LineChart) findViewById(R.id.chart);
         tvChoice = (TextView) findViewById(R.id.tvChoice);
         tvChoice.setOnClickListener(this);
-//        mSpinner = (Spinner) findViewById(R.id.spinner);
+        tvName = (TextView) findViewById(R.id.tvName);
+        tvName.setOnClickListener(this);
 
-//        //将可选内容与ArrayAdapter连接起来
-//        adapter = new ArrayAdapter<String>(this,android.R.layout.simple_spinner_item,datas);
-//        //设置下拉列表的风格
-//        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-//
-//        //将adapter 添加到spinner中
-//        mSpinner.setAdapter(adapter);
-//
-//        //添加事件Spinner事件监听
-//        mSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-//            @Override
-//            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-//                initData();
-//            }
-//
-//            @Override
-//            public void onNothingSelected(AdapterView<?> parent) {
-//
-//            }
-//        });
 
         Calendar calendar = Calendar.getInstance();
-        selectYesar = calendar.get(Calendar.YEAR);
+        selectYear = calendar.get(Calendar.YEAR);
         selectMonth = calendar.get(Calendar.MONTH);
         selectDay = calendar.get(Calendar.DAY_OF_MONTH);
+
+        recorderList = Mdb.getInstance().findAll(RecorderEntity.class);
+        try {
+            selectRecorder = recorderList.get(0);
+        } catch (Exception e) {
+
+        }
         initChart();
         showData(true);
     }
@@ -166,6 +159,7 @@ public class HistoryActivity extends AppCompatActivity implements View.OnClickLi
 
         mChart.getAxisRight().setEnabled(false);
         mChart.setVisibleXRangeMinimum(3);//最少显示3个点
+        mChart.setBackgroundColor(Color.WHITE);
 
     }
 
@@ -199,16 +193,23 @@ public class HistoryActivity extends AppCompatActivity implements View.OnClickLi
 
 
     private void showData(boolean isFirst) {
-        dataList = AppUtil.getDataListByDate(selectYesar,selectMonth,selectDay);
+        if (selectRecorder == null) {
+            Toast.makeText(this,"请选择成员!",Toast.LENGTH_SHORT).show();
+            return;
+        }
+        tvChoice.setText(String.format("%s-%s-%s",new Object[]{selectYear+"",selectMonth+"",selectDay+""}));
+        tvName.setText(selectRecorder.name);
+
+        //db.rawQuery("SELECT * FROM myTable WHERE myColumn IS NULL", null);
+        Mdb.getInstance().getdb().execSQL("UPDATE TemperatureDataEntity SET recordId=? WHERE recordId IS NULL",new String[]{selectRecorder._id+""});
+        dataList = AppUtil.getDataListByDate(selectYear,selectMonth,selectDay,selectRecorder._id);
         dataList = AppUtil.getChartListByInterval(dataList,Vars.ShowInterval);
-        ChartResultVo result = AppUtil.buildChartList(dataList,selectYesar,selectMonth,selectDay);
+        ChartResultVo result = AppUtil.buildChartList(dataList,selectYear,selectMonth,selectDay);
 
         if (result ==null || result.resultList==null || result.resultList.size()<=0) {
             Toast.makeText(this,"暂无数据",Toast.LENGTH_SHORT).show();
             return;
         }
-        tvChoice.setText(String.format("%s-%s-%s",new Object[]{selectYesar+"",selectMonth+"",selectDay+""}));
-
 
 //        setChatSize(isFirst,result.minX - Vars.EmptyMin,result.maxX + Vars.EmptyMin,result.minY-EmptyY,result.maxY+EmptyY);
         setChatSize(isFirst,result.minX - Vars.EmptyMin,result.maxX + Vars.EmptyMin,Vars.MinShowTemperature,Vars.MaxShowTemperature);
@@ -225,18 +226,28 @@ public class HistoryActivity extends AppCompatActivity implements View.OnClickLi
         } else {
             set1 = new LineDataSet(result.resultList, "温度-时间表");
 
-            set1.enableDashedLine(10f, 5f, 0f);
-            set1.enableDashedHighlightLine(10f, 5f, 0f);
-            set1.setColor(Color.BLACK);
+//            set1.enableDashedLine(10f, 5f, 0f);
+//            set1.enableDashedHighlightLine(10f, 5f, 0f);
+//            set1.setColor(Color.BLACK);
+//            set1.setCircleColor(Color.BLACK);
+//            set1.setLineWidth(1f);
+//            set1.setCircleRadius(3f);
+//            set1.setDrawCircleHole(false);
+//            set1.setValueTextSize(9f);
+//            set1.setDrawFilled(true);
+//            set1.setFormLineWidth(1f);
+//            set1.setFormLineDashEffect(new DashPathEffect(new float[]{10f, 5f}, 0f));
+//            set1.setFormSize(15.f);
+            set1.setAxisDependency(YAxis.AxisDependency.LEFT);
+            set1.setColor(ColorTemplate.getHoloBlue());
             set1.setCircleColor(Color.BLACK);
-            set1.setLineWidth(1f);
+            set1.setLineWidth(2f);
             set1.setCircleRadius(3f);
+            set1.setFillAlpha(65);
+            set1.setFillColor(ColorTemplate.getHoloBlue());
+            set1.setHighLightColor(Color.rgb(244, 117, 117));
             set1.setDrawCircleHole(false);
-            set1.setValueTextSize(9f);
-            set1.setDrawFilled(true);
-            set1.setFormLineWidth(1f);
-            set1.setFormLineDashEffect(new DashPathEffect(new float[]{10f, 5f}, 0f));
-            set1.setFormSize(15.f);
+
 
             if (Utils.getSDKInt() >= 18) {
                 // fill drawable only supported on api level 18 and above
@@ -256,10 +267,13 @@ public class HistoryActivity extends AppCompatActivity implements View.OnClickLi
             // set data
             mChart.setData(data);
         }
-
     }
 
-    private int selectYesar,selectMonth,selectDay;
+
+    private List<RecorderEntity> recorderList;
+    private String[] recodeNames;
+    private int selectYear,selectMonth,selectDay;
+    private RecorderEntity selectRecorder;
     @Override
     public void onClick(View v) {
         switch (v.getId()) {
@@ -267,13 +281,33 @@ public class HistoryActivity extends AppCompatActivity implements View.OnClickLi
                 AppPickerDialog datePicker = new AppPickerDialog(this, new DatePickerDialog.OnDateSetListener() {
                     @Override
                     public void onDateSet(DatePicker view, int year, int monthOfYear, int dayOfMonth) {
-                        selectYesar = year;
+                        selectYear = year;
                         selectMonth = monthOfYear;
                         selectDay = dayOfMonth;
                         showData(false);
                     }
-                },selectYesar,selectMonth,selectDay);
+                },selectYear,selectMonth,selectDay);
                 datePicker.show();
+                break;
+            case R.id.tvName:
+                if (recodeNames==null) {
+                    List<String> recodeList = new ArrayList<>();
+                    for (RecorderEntity entity:recorderList) {
+                        recodeList.add(entity.name);
+                    }
+                    recodeNames = recodeList.toArray(new String[recodeList.size()]);
+                }
+
+                AlertDialog.Builder builder = new AlertDialog.Builder(this);
+                builder.setTitle("请选择成员");
+                builder.setItems(recodeNames, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        selectRecorder = recorderList.get(which);
+                        showData(false);
+                    }
+                });
+               builder.show();
                 break;
         }
     }

@@ -31,13 +31,8 @@ public class SettingActivity extends BaseActivity implements View.OnClickListene
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_setting);
-         Mdb.init(this);
-
+        Mdb.init(this);
         settingEntity = AppUtil.getSettingEntity(this);
-        if (settingEntity == null) {
-            settingEntity = new SettingEntity();
-        }
-
 
         ActivitySettingBinding binding = DataBindingUtil.setContentView(this,R.layout.activity_setting);
         binding.setSetting(settingEntity);

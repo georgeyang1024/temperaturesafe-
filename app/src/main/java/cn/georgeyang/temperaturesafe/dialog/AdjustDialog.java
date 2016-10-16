@@ -11,7 +11,7 @@ import android.view.WindowManager;
 import android.widget.EditText;
 
 import cn.georgeyang.temperaturesafe.R;
-import cn.georgeyang.temperaturesafe.utils.DialogUtil;
+import cn.georgeyang.utils.DialogUtil;
 
 /**
  * Created by george.yang on 16/9/8.

@@ -11,6 +11,7 @@ import android.os.Vibrator;
 import android.util.Log;
 
 import com.github.mikephil.charting.data.Entry;
+import com.google.gson.Gson;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -22,6 +23,7 @@ import cn.georgeyang.database.Mdb;
 import cn.georgeyang.temperaturesafe.R;
 import cn.georgeyang.temperaturesafe.Vars;
 import cn.georgeyang.temperaturesafe.entity.ChartResultVo;
+import cn.georgeyang.temperaturesafe.entity.RecorderEntity;
 import cn.georgeyang.temperaturesafe.entity.SettingEntity;
 import cn.georgeyang.temperaturesafe.entity.TemperatureDataEntity;
 import cn.georgeyang.temperaturesafe.service.BluetoothLeService;
@@ -37,6 +39,11 @@ public class AppUtil {
         }
         if (settingEntity==null) {
             settingEntity = new SettingEntity();
+            //first Install
+            new RecorderEntity("爸爸").save();
+            new RecorderEntity("妈妈").save();
+            new RecorderEntity("爷爷").save();
+            new RecorderEntity("奶奶").save();
         }
         return settingEntity;
     }
@@ -138,7 +145,7 @@ public class AppUtil {
      * @param day
      * @return
      */
-    public static List<TemperatureDataEntity> getDataListByDate(int year,int month,int day) {
+    public static List<TemperatureDataEntity> getDataListByDate(int year,int month,int day,int selectRecorderId) {
         Calendar tagDateZeroTime = Calendar.getInstance();
         tagDateZeroTime.set(year,month,day);
         tagDateZeroTime.set(Calendar.HOUR_OF_DAY,0);
@@ -150,7 +157,8 @@ public class AppUtil {
         tagDateEndTime.set(Calendar.MINUTE,59);
         tagDateEndTime.set(Calendar.SECOND,59);
 
-        String where = String.format("_addTime>%s and _addTime<%s",new Object[]{tagDateZeroTime.getTimeInMillis(),tagDateEndTime.getTimeInMillis()});
+
+        String where = String.format("_addTime>%s and _addTime<%s and recordId = %s",new Object[]{tagDateZeroTime.getTimeInMillis(),tagDateEndTime.getTimeInMillis(),selectRecorderId});
         List<TemperatureDataEntity> ret = Mdb.getInstance().findAllbyWhere(TemperatureDataEntity.class,where);
 
 //        Log.d("test","size:" + ret.size());
@@ -177,6 +185,7 @@ public class AppUtil {
 
         long lastMs = 0;
         for (TemperatureDataEntity entity:list) {
+            Log.i("test",new Gson().toJson(entity));
             if (entity._addTime >= lastMs + interval) {
                 cc.setTimeInMillis(entity._addTime);
 

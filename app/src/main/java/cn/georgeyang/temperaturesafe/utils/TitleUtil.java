@@ -17,14 +17,18 @@ public class TitleUtil {
         return new TitleUtil(view);
     }
     public static TitleUtil init (Activity activity) {
-        View view = activity.getWindow().getDecorView();
-        return new TitleUtil(view);
+        return new TitleUtil(activity);
     }
 
-
+    private Activity activity;
     private View view;
     public TitleUtil (View view) {
         this.view = view;
+    }
+
+    public TitleUtil (Activity activity) {
+        this.activity = activity;
+        this.view = activity.getWindow().getDecorView();
     }
 
     public TitleUtil setTitle(String title) {
@@ -38,11 +42,11 @@ public class TitleUtil {
         btn_back.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                try {
+                if (activity!=null) {
+                    activity.finish();
+                } else  {
                     Activity activity = (Activity) v.getContext();
                     activity.finish();
-                } catch (Exception e) {
-
                 }
             }
         });
@@ -54,13 +58,8 @@ public class TitleUtil {
         btn_back.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                try {
-//                    Activity activity = (Activity) v.getContext();
                     Intent intent = new Intent(v.getContext(), SettingActivity.class);
                     v.getContext().startActivity(intent);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
             }
         });
         return this;

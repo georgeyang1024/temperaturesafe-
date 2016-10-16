@@ -186,4 +186,23 @@ public class DialogUtil {
             progressDialog.dismiss();
         }
     }
+
+//    public static void showInputDialog (Activity activity,String tip,String def) {
+//        final EditText et = new EditText(activity);
+//        et.setText(def);
+//        //获取ip而已，不用在乎
+//        new AlertDialog.Builder(this).setTitle("请输入IP地址")
+//                .setIcon(android.R.drawable.ic_dialog_info).setView(et)
+//                .setPositiveButton("确定", new DialogInterface.OnClickListener() {
+//                    @Override
+//                    public void onClick(DialogInterface arg0, int arg1) {
+//                        //数据获取
+//                        //Toast.makeText(TestTabActivity.this, et.getText().toString(),
+//                        //      Toast.LENGTH_LONG).show();
+//                        mEditor.putString("ipadd", et.getText().toString());
+//                        //关键在这儿，获取输入框的数据，原来很简单！！
+//                        mEditor.commit();
+//                    }
+//                }).setNegativeButton("取消", null).show();
+//    }
 }

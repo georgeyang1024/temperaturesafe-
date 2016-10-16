@@ -42,15 +42,15 @@ public class AppPickerDialog extends DatePickerDialog {
     public void show() {
         super.show();
 
-        this.getWindow().getDecorView().findViewById(android.R.id.button1)
-                .setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View view) {
-                        dismiss();
-                        if (mCallBack!=null) {
-                            mCallBack.onDateSet(picker, chooiceYear, chooiceMonth,chooiceDay);
-                        }
-                    }
-                });
+//        this.getWindow().getDecorView().findViewById(android.R.id.button1)
+//                .setOnClickListener(new View.OnClickListener() {
+//                    @Override
+//                    public void onClick(View view) {
+//                        dismiss();
+//                        if (mCallBack!=null) {
+//                            mCallBack.onDateSet(picker, chooiceYear, chooiceMonth,chooiceDay);
+//                        }
+//                    }
+//                });
     }
 }

@@ -13,7 +13,6 @@ public class AppBindingAdapter {
 
     @BindingAdapter({"bind:tmp"})
     public static void showTmp(TextView view, float tmp) {
-        L.showLog("showTmp:" + tmp);
         view.setText(tmp+"ºC");
     }
 

@@ -162,7 +162,7 @@ public class BluetoothLeService extends Service {
             }
             TemperatureDataEntity entity = new TemperatureDataEntity();
             entity.type = type;
-            entity.recordName = settingEntity.name;
+            entity.recordId = settingEntity.recorderId;
             entity.temperature = temperature;
             if (System.currentTimeMillis()>=lastRecordTime+Vars.RecordInterval) {
                 Log.d("test","记录一条消息:" + System.currentTimeMillis());

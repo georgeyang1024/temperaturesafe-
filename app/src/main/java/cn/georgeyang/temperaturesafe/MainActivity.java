@@ -23,11 +23,12 @@ import android.widget.Toast;
 
 import java.util.List;
 
+import cn.georgeyang.database.Mdb;
 import cn.georgeyang.temperaturesafe.impl.BaseActivity;
 import cn.georgeyang.temperaturesafe.service.BluetoothLeService;
 import cn.georgeyang.temperaturesafe.utils.AppUtil;
-import cn.georgeyang.temperaturesafe.utils.DialogUtil;
 import cn.georgeyang.temperaturesafe.utils.TitleUtil;
+import cn.georgeyang.utils.DialogUtil;
 
 public class MainActivity extends BaseActivity implements View.OnClickListener {
     private String mDeviceAddress;
@@ -37,6 +38,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        Mdb.init(this);
 
         TitleUtil.init(this).setTitle(getResources().getString(R.string.app_name)).autoGoSetting();
 

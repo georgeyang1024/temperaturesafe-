@@ -11,8 +11,7 @@ import android.view.WindowManager;
 import android.widget.EditText;
 
 import cn.georgeyang.temperaturesafe.R;
-import cn.georgeyang.temperaturesafe.utils.DialogUtil;
-import cn.georgeyang.temperaturesafe.utils.T;
+import cn.georgeyang.utils.DialogUtil;
 
 /**
  * 高温报警
