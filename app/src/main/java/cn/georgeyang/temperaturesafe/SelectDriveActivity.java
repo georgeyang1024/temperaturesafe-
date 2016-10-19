@@ -51,7 +51,7 @@ public class SelectDriveActivity extends BaseActivity implements AdapterView.OnI
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_monitor);
 
-        TitleUtil.init(this).setTitle("监护人设置").autoBack();
+        TitleUtil.init(this).setTitle("选择连接设备").autoBack();
         listView = (ListView) findViewById(R.id.listView);
         mAdapter = new BuleToolAdapter(this,deviceList);
         listView.setAdapter(mAdapter);
@@ -67,11 +67,7 @@ public class SelectDriveActivity extends BaseActivity implements AdapterView.OnI
                 //请求开启蓝牙设备
                 startActivityForResult(intent, 1);
             } else {
-                showMessage("开始扫描...");
-                if (!adapter.isDiscovering()){
-                    adapter.startDiscovery();
-                    deviceList.clear();
-                }
+                startScan();
             }
         }
     }
@@ -119,17 +115,32 @@ public class SelectDriveActivity extends BaseActivity implements AdapterView.OnI
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == 1) {
             if (resultCode == RESULT_OK) {
-                showMessage ( "蓝牙已经开启");
-                BluetoothAdapter adapter = getBuletoothAdapter();
-                if (!adapter.isDiscovering()){
-                    showMessage("扫描中...");
-                    adapter.startDiscovery();
-                    deviceList.clear();
-                }
+               startScan();
             } else if (resultCode == RESULT_CANCELED) {
                 showMessage( "不允许蓝牙开启");
                 finish();
             }
+        }
+    }
+
+    private void startScan() {
+        showMessage("开始扫描...");
+        BluetoothAdapter adapter = getBuletoothAdapter();
+        adapter.setDiscoverableTimeout(30000);
+        deviceList.clear();
+        if (!adapter.isDiscovering()){
+//            adapter.startDiscovery();
+            adapter.startLeScan(new BluetoothAdapter.LeScanCallback() {
+                @Override
+                public void onLeScan(BluetoothDevice device, int rssi, byte[] scanRecord) {
+                    if (device!=null) {
+                        if (!deviceList.contains(device)) {
+                            deviceList.add(device);
+                            mAdapter.notifyDataSetChanged();
+                        }
+                    }
+                }
+            });
         }
     }
 

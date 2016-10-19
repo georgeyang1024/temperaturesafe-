@@ -80,6 +80,9 @@ public class BluetoothLeService extends Service {
                 Log.i(TAG, "Attempting to start service discovery:"
                         + mBluetoothGatt.discoverServices());
 
+                AppUtil.stopVibrator();
+                AppUtil.stopPlay(getApplicationContext());
+
             } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
                 intentAction = ACTION_GATT_DISCONNECTED;
                 mConnectionState = STATE_DISCONNECTED;
@@ -190,7 +193,7 @@ public class BluetoothLeService extends Service {
                     Vars.unNomalStartTime = System.currentTimeMillis();
                 }
                 if (System.currentTimeMillis() - Vars.unNomalStartTime > Vars.WaringCheckTime) {
-                    startWarining();
+                    startWarning(false);
                 }
                 if (!unNormalHight) {
                     Vars.startHeightWaringTemp = temperature;
@@ -212,31 +215,32 @@ public class BluetoothLeService extends Service {
     private void lostWarning() {
         SettingEntity settingEntity = AppUtil.getSettingEntity(this);
         if (settingEntity.isLostAlarm()) {
-            startWarining();
+            startWarning(true);
         }
     }
 
     /**
      * 声音震动警报
      */
-    private void startWarining() {
+    private void startWarning(boolean loop) {
         if (Vars.waring) {
             return;
         }
 
         SettingEntity settingEntity = AppUtil.getSettingEntity(this);
         if (System.currentTimeMillis() < settingEntity.startWarningTime) {
+            Log.d("test","改时间内已被禁止报警");
             //这个时间内不允许报警
             return;
         }
 
         boolean bro = false;
         if (settingEntity.isSoundAlarm()) {
-            AppUtil.playWarning(this);
+            AppUtil.playWarning(this,loop);
             bro = true;
         }
         if (settingEntity.isVibrationAlarm()) {
-            AppUtil.startVibrator(this);
+            AppUtil.startVibrator(this,loop);
             bro = true;
         }
         if (bro) {

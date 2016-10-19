@@ -175,9 +175,12 @@ public class HistoryActivity extends AppCompatActivity implements View.OnClickLi
         YAxis leftAxis = mChart.getAxisLeft();
         leftAxis.removeAllLimitLines(); // reset all limit lines to avoid overlapping lines
         leftAxis.setAxisMinimum(startY);
+        leftAxis.setValueFormatter(new TempAxisValueFormatter());
         leftAxis.setAxisMaximum(endY);
         leftAxis.enableGridDashedLine(10f, 10f, 0f);
         leftAxis.setDrawZeroLine(false);
+        leftAxis.setAxisLineWidth(0.5f);
+        leftAxis.setLabelCount(20,true);
 
         // limit lines are drawn behind data (and not on top)
         leftAxis.setDrawLimitLinesBehindData(true);

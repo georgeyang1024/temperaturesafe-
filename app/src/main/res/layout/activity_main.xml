@@ -33,7 +33,7 @@
             android:gravity="center"
             android:layout_height="200dp">
 
-            <TextView
+            <cn.georgeyang.temperaturesafe.widget.TemperatTextView
                 android:id="@+id/tv_show"
                 android:textColor="@color/white"
                 android:text="请点击连接设备"

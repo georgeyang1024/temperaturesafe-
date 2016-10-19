@@ -137,6 +137,7 @@ public class SettingActivity extends BaseActivity implements View.OnClickListene
             settingEntity.soundAlarm = sw_soundAlarm.isChecked();
             settingEntity.lostAlarm = sw_lostAlarm.isChecked();
             settingEntity.lowAlarm = sw_lowAlarm.isChecked();
+            settingEntity.startWarningTime = 0;
 
             AppUtil.setSettingEntity(settingEntity);
         }

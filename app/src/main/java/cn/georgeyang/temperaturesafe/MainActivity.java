@@ -33,13 +33,15 @@ import cn.georgeyang.temperaturesafe.impl.BaseActivity;
 import cn.georgeyang.temperaturesafe.service.BluetoothLeService;
 import cn.georgeyang.temperaturesafe.utils.AppUtil;
 import cn.georgeyang.temperaturesafe.utils.TitleUtil;
+import cn.georgeyang.temperaturesafe.widget.TemperatTextView;
 import cn.georgeyang.utils.DialogUtil;
 
 public class MainActivity extends BaseActivity implements View.OnClickListener {
     private String mDeviceAddress;
-    private TextView tv_show,tvRecorder;
+    private TextView tvRecorder;
     private List<RecorderEntity> recorderList;
     private SettingEntity settingEntity;
+    private TemperatTextView temperatTextView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -52,7 +54,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
 
         findViewById(R.id.tv_check).setOnClickListener(this);
         findViewById(R.id.layout_check).setOnClickListener(this);
-        tv_show = (TextView) findViewById(R.id.tv_show);
+        temperatTextView = (TemperatTextView) findViewById(R.id.tv_show);
         tvRecorder = (TextView) findViewById(R.id.tvRecorder);
         tvRecorder.setOnClickListener(this);
 
@@ -165,9 +167,9 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
 
             Log.i("test","连接结果:" + result);
             if (result) {
-                tv_show.setText("正在获取数据");
+                temperatTextView.setTipText("正在获取数据");
             } else {
-                tv_show.setText("连接失败");
+                temperatTextView.setTipText("连接失败");
             }
 
         }
@@ -202,10 +204,10 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
         super.onReceiverMsg(context, intent, action, id, data);
         if (BluetoothLeService.ACTION_GATT_CONNECTED.equals(action)) {
             mConnected = true;
-            tv_show.setText("已连接");
+            temperatTextView.setTipText("已连接");
         } else if (BluetoothLeService.ACTION_GATT_DISCONNECTED.equals(action)) {
             mConnected = false;
-            tv_show.setText("已断开");
+            temperatTextView.setTipText("已断开");
         } else if (BluetoothLeService.ACTION_GATT_SERVICES_DISCOVERED.equals(action)) {
             displayGattServices(mBluetoothLeService.getSupportedGattServices());
         } else if (BluetoothLeService.ACTION_DATA_AVAILABLE.equals(action)) {
@@ -223,7 +225,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
 //            String[] servalues = intent.getStringArrayExtra(BluetoothLeService.EXTRA_DATA);
             float temperature = intent.getFloatExtra("temperature",0);
             String temp = String.format("%.1f", temperature);
-            tv_show.setText( temp);
+            temperatTextView.setTemperatText( temp);
 
          } else if (BluetoothLeService.ACTION_START_WARING.equals(action)) {
             //开始警报

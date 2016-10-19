@@ -78,22 +78,22 @@ public class AppUtil {
 
     private static MediaPlayer mediaPlayer;
     private static SoundPool soundPool;
-    public static void playWarning (Context context) {
+    public static void playWarning (Context context,boolean loop) {
         Vars.waring = true;
-//        if (Vars.WaringTimes>0) {
-//            try {
-//                soundPool = new SoundPool(10, AudioManager.STREAM_SYSTEM,5);
-//                soundPool.load(context, R.raw.warning,Vars.WaringTimes);
-//                soundPool.setOnLoadCompleteListener(new SoundPool.OnLoadCompleteListener() {
-//                    @Override
-//                    public void onLoadComplete(SoundPool soundPool, int sampleId, int status) {
-//                        soundPool.play(1,1, 1, 0,Vars.WaringTimes, 1);
-//                    }
-//                });
-//            } catch (Exception e) {
-//
-//            }
-//        } else {
+        if (loop) {
+            try {
+                soundPool = new SoundPool(10, AudioManager.STREAM_MUSIC,5);
+                soundPool.load(context, R.raw.warning,0);
+                soundPool.setOnLoadCompleteListener(new SoundPool.OnLoadCompleteListener() {
+                    @Override
+                    public void onLoadComplete(SoundPool soundPool, int sampleId, int status) {
+                        soundPool.play(1,1, 1, 0,-1, 1);
+                    }
+                });
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        } else {
             try {
                 if (mediaPlayer!=null) {
                     stopPlay(context);
@@ -102,7 +102,6 @@ public class AppUtil {
                 mediaPlayer = MediaPlayer.create(context, R.raw.warning);
                 mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
                 mediaPlayer.setVolume(1f, 1f);
-//                mediaPlayer.prepare();
                 mediaPlayer.setLooping(false);
                 mediaPlayer.start();
                 mediaPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
@@ -119,6 +118,11 @@ public class AppUtil {
             } catch (Exception e) {
                 e.printStackTrace();
             }
+        }
+    }
+
+    public static void playWarning (Context context) {
+        playWarning(context,false);
     }
 
     public static void stopPlay(Context context) {
@@ -127,15 +131,30 @@ public class AppUtil {
         if (mediaPlayer!=null) {
             mediaPlayer.stop();
         }
+        if (soundPool!=null) {
+            soundPool.stop(1);
+            soundPool.release();
+            soundPool = null;
+        }
+        try {
+            DialogUtil.getDialog().dismiss();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     private static  Vibrator vibrator;
     public static void startVibrator(Context context) {
+        startVibrator(context,false);
+    }
+
+    public static void startVibrator(Context context,boolean loop) {
         if (vibrator==null) {
             vibrator = (Vibrator) context.getSystemService(Service.VIBRATOR_SERVICE);
         }
         if (vibrator.hasVibrator()) {
-            vibrator.vibrate(new long[]{100, 100, 100, 200,100,300,100,400,100,500,100,600,100,700,100,800,100,900,100,1000}, -1);
+            int repeat = loop?0:-1;
+            vibrator.vibrate(new long[]{100, 100, 100, 200,100,300,100,400,100,500,100,600,100,700,100,800,100,900,100,1000}, repeat);
         }
     }
 
@@ -198,7 +217,7 @@ public class AppUtil {
 
         long lastMs = 0;
         for (TemperatureDataEntity entity:list) {
-            Log.i("test",new Gson().toJson(entity));
+//            Log.i("test",new Gson().toJson(entity));
             if (entity._addTime >= lastMs + interval) {
                 cc.setTimeInMillis(entity._addTime);
 
