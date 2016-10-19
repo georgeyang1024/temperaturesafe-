@@ -224,7 +224,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
         } else if (BluetoothLeService.ACTION_DATA_AVAILABLE_NEW.equals(action)) {
 //            String[] servalues = intent.getStringArrayExtra(BluetoothLeService.EXTRA_DATA);
             float temperature = intent.getFloatExtra("temperature",0);
-            String temp = String.format("%.1f", temperature);
+            String temp = String.format("%.1fºC", temperature);
             temperatTextView.setTemperatText( temp);
 
          } else if (BluetoothLeService.ACTION_START_WARING.equals(action)) {

@@ -145,6 +145,16 @@ public class SelectDriveActivity extends BaseActivity implements AdapterView.OnI
     }
 
     @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        try {
+            getBuletoothAdapter().cancelDiscovery();
+        } catch (Exception e) {
+
+        }
+    }
+
+    @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
         final BluetoothDevice device = deviceList.get(position);
         getBuletoothAdapter().cancelDiscovery();

@@ -8,17 +8,17 @@ public class TempAxisValueFormatter implements IAxisValueFormatter
 
     @Override
     public String getFormattedValue(float value, AxisBase axis) {
-        int vint = (int) value;
-        float minDis = Float.MAX_VALUE,minDisValue = 0f;
-        for (float i=vint-1;i<=vint+1;i+=0.5f) {
-            float dis = Math.abs(i-value);
-            if (dis<minDis) {
-                minDis = dis;
-                minDisValue = i;
-            }
-
-        }
-        return String.format("%.1f", minDisValue);
+//        int vint = (int) value;
+//        float minDis = Float.MAX_VALUE,minDisValue = 0f;
+//        for (float i=vint-1;i<=vint+1;i+=0.5f) {
+//            float dis = Math.abs(i-value);
+//            if (dis<minDis) {
+//                minDis = dis;
+//                minDisValue = i;
+//            }
+//        }
+//        return String.format("%.1f", minDisValue);
+        return String.format("%.1f", value);
     }
 
     @Override
