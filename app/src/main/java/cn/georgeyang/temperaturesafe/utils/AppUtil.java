@@ -306,4 +306,13 @@ public class AppUtil {
         return ret;
     }
 
+    public static boolean isFastReconnectSystem() { //此方法是我自行使用众多三星手机总结出来，不一定很准确
+        String brand = android.os.Build.BRAND;
+        if (brand.toLowerCase().equals("samsung") || brand.toLowerCase().equals("nexus")) {
+            return true;
+        }
+        return false;
+    }
+
+
 }

@@ -97,16 +97,28 @@ public class SelectDriveActivity extends BaseActivity implements AdapterView.OnI
         switch (action) {
             case BluetoothDevice.ACTION_FOUND:
                 BluetoothDevice btDevice = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
-                if (btDevice!=null) {
-                    if (!deviceList.contains(btDevice)) {
-                        deviceList.add(btDevice);
-                        mAdapter.notifyDataSetChanged();
-                    }
-                }
+                appendAndShowDevice(btDevice);
                 break;
             case BluetoothAdapter.ACTION_DISCOVERY_FINISHED:
                 showMessage( "扫描完成!");
                 break;
+        }
+    }
+
+    private void appendAndShowDevice(final BluetoothDevice device) {
+        if (device!=null) {
+            if (!deviceList.contains(device)) {
+                deviceList.add(device);
+                mAdapter.notifyDataSetChanged();
+            }
+            if ("MINGDE010".equalsIgnoreCase(device.getName())) {
+                listView.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        selectAndExit(device);
+                    }
+                });
+            }
         }
     }
 
@@ -126,21 +138,19 @@ public class SelectDriveActivity extends BaseActivity implements AdapterView.OnI
     private void startScan() {
         showMessage("开始扫描...");
         BluetoothAdapter adapter = getBuletoothAdapter();
-        adapter.setDiscoverableTimeout(30000);
+        adapter.setDiscoverableTimeout(60000);
         deviceList.clear();
         if (!adapter.isDiscovering()){
-//            adapter.startDiscovery();
-            adapter.startLeScan(new BluetoothAdapter.LeScanCallback() {
-                @Override
-                public void onLeScan(BluetoothDevice device, int rssi, byte[] scanRecord) {
-                    if (device!=null) {
-                        if (!deviceList.contains(device)) {
-                            deviceList.add(device);
-                            mAdapter.notifyDataSetChanged();
-                        }
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                adapter.startDiscovery();
+            } else if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.JELLY_BEAN_MR2) {
+                adapter.startLeScan(new BluetoothAdapter.LeScanCallback() {
+                    @Override
+                    public void onLeScan(final BluetoothDevice device, int rssi, byte[] scanRecord) {
+                        appendAndShowDevice(device);
                     }
-                }
-            });
+                });
+            }
         }
     }
 
@@ -157,14 +167,17 @@ public class SelectDriveActivity extends BaseActivity implements AdapterView.OnI
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
         final BluetoothDevice device = deviceList.get(position);
+        selectAndExit(device);
+    }
+
+
+    private void selectAndExit(BluetoothDevice device) {
         getBuletoothAdapter().cancelDiscovery();
         Intent intent = new Intent();
         intent.putExtra("device", device);
         setResult(RESULT_OK, intent);
         finish();
     }
-
-
 
 
 

@@ -13,8 +13,11 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.content.pm.PackageManager;
 import android.os.Build;
+import android.os.Handler;
 import android.os.IBinder;
+import android.os.Message;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -42,6 +45,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
     private List<RecorderEntity> recorderList;
     private SettingEntity settingEntity;
     private TemperatTextView temperatTextView;
+    private Handler handler;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -51,6 +55,8 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
         Mdb.getInstance().updataTable(TemperatureDataEntity.class);
 
         TitleUtil.init(this).setTitle(getResources().getString(R.string.app_name)).autoGoSetting();
+
+        handler = new Handler();
 
         findViewById(R.id.tv_check).setOnClickListener(this);
         findViewById(R.id.layout_check).setOnClickListener(this);
@@ -78,17 +84,53 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
 
         AppUtil.stopPlay(this);
         AppUtil.stopVibrator();
+
+
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
         unbindService(mServiceConnection);
+        if (mBluetoothLeService!=null) {
+            mBluetoothLeService.disconnect();
+        }
         mBluetoothLeService = null;
 
         AppUtil.stopPlay(getActivity());
         AppUtil.stopVibrator();
+
+        handler.removeCallbacks(loopReConnect);
+
     }
+
+    Runnable loopReConnect = new Runnable() {
+        @Override
+        public void run() {
+            try {
+                Log.i("test","loopRun!");
+                if (MainActivity.this.isFinishing()) {
+                    return;
+                }
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
+                    if (MainActivity.this.isDestroyed()) {
+                        return;
+                    }
+                }
+                if (mBluetoothLeService != null) {
+                    boolean result = mBluetoothLeService.reConntect();
+                    Log.d(TAG, "reConnect request result=" + result);
+                    if (result) {
+                        temperatTextView.setTipText("重连中");
+                    }
+                }
+
+                handler.postDelayed(loopReConnect,10000);
+            } catch (Exception e) {
+
+            }
+        }
+    };
 
     @Override
     protected void onResume() {
@@ -108,7 +150,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
         tvRecorder.setText(choiceRecorder.name);
 
         if (Vars.waring) {
-            waringDialog();
+            waringDialog(Vars.lastWaringType);
         }
     }
 
@@ -121,6 +163,10 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
                 startActivity(new Intent(MainActivity.this,HistoryActivity.class));
                 break;
             case R.id.layout_check:
+                if (!getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE)){
+                    Toast.makeText(this, "你的手机不支持低功耗蓝牙连接，无法继续选择蓝牙设备!",Toast.LENGTH_SHORT).show();
+                    return;
+                }
                 startActivityForResult(new Intent(MainActivity.this,SelectDriveActivity.class),1);
                 break;
             case R.id.tvRecorder:
@@ -205,9 +251,12 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
         if (BluetoothLeService.ACTION_GATT_CONNECTED.equals(action)) {
             mConnected = true;
             temperatTextView.setTipText("已连接");
+            handler.removeCallbacks(loopReConnect);
         } else if (BluetoothLeService.ACTION_GATT_DISCONNECTED.equals(action)) {
             mConnected = false;
             temperatTextView.setTipText("已断开");
+            handler.removeCallbacks(loopReConnect);
+            handler.post(loopReConnect);
         } else if (BluetoothLeService.ACTION_GATT_SERVICES_DISCOVERED.equals(action)) {
             displayGattServices(mBluetoothLeService.getSupportedGattServices());
         } else if (BluetoothLeService.ACTION_DATA_AVAILABLE.equals(action)) {
@@ -230,15 +279,25 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
          } else if (BluetoothLeService.ACTION_START_WARING.equals(action)) {
             //开始警报
             Log.d("test","开始报警！");
-           waringDialog();
+            int waringType = intent.getIntExtra("waringType",Vars.WaringTypeUnknow);
+            waringDialog(waringType);
         }
     }
 
-    private void waringDialog() {
+    private void waringDialog(int waringType) {
         if (!Vars.waring) {
             return;
         }
-        DialogUtil.showYNDialog(getActivity(), "点击确定取消警报", new DialogInterface.OnClickListener() {
+
+        String tip = "点击确定取消警报";
+        if (waringType==Vars.WaringTypeLost) {
+            tip = "蓝牙防丢报警";
+        } else if (waringType==Vars.WaringTypeLow) {
+            tip = "低温报警";
+        } else if (waringType==Vars.WaringTypeHeight) {
+            tip = "高温报警";
+        }
+        DialogUtil.showYNDialog(getActivity(), tip, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 AppUtil.stopPlay(getActivity());
@@ -256,7 +315,6 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
     }
 
     private boolean mConnected;
-    @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
     private void displayGattServices(List<BluetoothGattService> gattServices) {
         if (gattServices == null)
             return;
@@ -265,14 +323,17 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
         for (BluetoothGattService gattService : gattServices) {
             Log.d(TAG, "=======");
             Log.d(TAG, "displayGattServices: "+uuid);
-            List<BluetoothGattCharacteristic> gattCharacteristics = gattService.getCharacteristics();
-            for (BluetoothGattCharacteristic gattCharacteristic : gattCharacteristics) {
-                uuid = gattCharacteristic.getUuid().toString();
-                Log.d("test","BluetoothGattCharacteristic:" + uuid);
-                if (uuid.contains("2a1c-")) {
-                    Log.e("console", "2gatt Characteristic: " + uuid);
-                    mBluetoothLeService.setCharacteristicNotification(gattCharacteristic, true);
-                    mBluetoothLeService.readCharacteristic(gattCharacteristic);
+
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.JELLY_BEAN_MR2) {
+                List<BluetoothGattCharacteristic> gattCharacteristics  = gattService.getCharacteristics();
+                for (BluetoothGattCharacteristic gattCharacteristic : gattCharacteristics) {
+                    uuid = gattCharacteristic.getUuid().toString();
+                    Log.d("test","BluetoothGattCharacteristic:" + uuid);
+                    if (uuid.contains("2a1c-")) {
+                        Log.e("console", "2gatt Characteristic: " + uuid);
+                        mBluetoothLeService.setCharacteristicNotification(gattCharacteristic, true);
+                        mBluetoothLeService.readCharacteristic(gattCharacteristic);
+                    }
                 }
             }
         }

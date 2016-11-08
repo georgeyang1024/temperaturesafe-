@@ -140,7 +140,12 @@ public class BluetoothLeService extends Service {
     };
 
     private void broadcastUpdate(final String action) {
+        this.broadcastUpdate(action,Vars.WaringTypeUnknow);
+    }
+
+    private void broadcastUpdate(final String action,int waringType) {
         final Intent intent = new Intent(action);
+        intent.putExtra("waringType",waringType);
         sendBroadcast(intent);
     }
 
@@ -192,14 +197,17 @@ public class BluetoothLeService extends Service {
                 if (Vars.unNomalStartTime==0) {
                     Vars.unNomalStartTime = System.currentTimeMillis();
                 }
-                if (System.currentTimeMillis() - Vars.unNomalStartTime > Vars.WaringCheckTime) {
-                    startWarning(false);
-                }
+
                 if (!unNormalHight) {
                     Vars.startHeightWaringTemp = temperature;
+                    Vars.lastWaringType = Vars.WaringTypeHeight;
                 }
                 if (!unNormalLow) {
                     Vars.startLowWarningTemp = temperature;
+                    Vars.lastWaringType = Vars.WaringTypeLow;
+                }
+                if (System.currentTimeMillis() - Vars.unNomalStartTime > Vars.WaringCheckTime) {
+                    startWarning(Vars.lastWaringType,false);
                 }
             } else {
                 Vars.unNomalStartTime = 0;
@@ -215,14 +223,14 @@ public class BluetoothLeService extends Service {
     private void lostWarning() {
         SettingEntity settingEntity = AppUtil.getSettingEntity(this);
         if (settingEntity.isLostAlarm()) {
-            startWarning(true);
+            startWarning(Vars.WaringTypeLost,true);
         }
     }
 
     /**
      * 声音震动警报
      */
-    private void startWarning(boolean loop) {
+    private void startWarning(int waringType,boolean loop) {
         if (Vars.waring) {
             return;
         }
@@ -245,7 +253,7 @@ public class BluetoothLeService extends Service {
         }
         if (bro) {
             Vars.waring = true;
-            broadcastUpdate(ACTION_START_WARING);
+            broadcastUpdate(ACTION_START_WARING,waringType);
         }
     }
 
@@ -259,6 +267,8 @@ public class BluetoothLeService extends Service {
     public IBinder onBind(Intent intent) {
         return mBinder;
     }
+
+
 
     @Override
     public boolean onUnbind(Intent intent) {
@@ -337,13 +347,13 @@ public class BluetoothLeService extends Service {
         if (mBluetoothDeviceAddress != null
                 && address.equals(mBluetoothDeviceAddress)
                 && mBluetoothGatt != null) {
-            Log.d(TAG, "Trying to use an existing mBluetoothGatt for connection.");
-            if (mBluetoothGatt.connect()) {
-                mConnectionState = STATE_CONNECTING;
-                return true;
-            } else {
-                return false;
-            }
+            //reconnect
+                if (mBluetoothGatt.connect()) {
+                    mConnectionState = STATE_CONNECTING;
+                    return true;
+                } else {
+                    return false;
+                }
         }
 
         final BluetoothDevice device = mBluetoothAdapter
@@ -357,8 +367,65 @@ public class BluetoothLeService extends Service {
         // parameter to false.
         //method don't support connectGatt in low 4.3
         mBluetoothGatt = device.connectGatt(this, false, mGattCallback);
+
         Log.d(TAG, "Trying to create a new connection.");
         mBluetoothDeviceAddress = address;
+        mConnectionState = STATE_CONNECTING;
+        return true;
+    }
+
+    public boolean reConntect () {
+        if (mConnectionState == STATE_CONNECTED) {
+            Log.d(TAG, "aleardy connected");
+            return false;
+        }
+
+        if (mBluetoothAdapter == null) {
+            Log.w(TAG,
+                    "BluetoothAdapter not initialized or unspecified address.");
+            return false;
+        }
+
+        // Previously connected device. Try to reconnect. (锟斤拷前锟斤拷锟接碉拷锟借备锟斤拷 锟斤拷锟斤拷锟斤拷锟斤拷锟斤拷锟斤拷)
+        if (mBluetoothDeviceAddress != null
+                && mBluetoothGatt != null) {
+            //reconnect
+            Log.d(TAG, "Trying to use an existing mBluetoothGatt for connection.");
+            if (AppUtil.isFastReconnectSystem()) {
+                //这些手机型号能快速重连
+                if (mBluetoothGatt.connect()) {
+                    mConnectionState = STATE_CONNECTING;
+                    return true;
+                } else {
+                    return false;
+                }
+            } else {
+                if (mBluetoothGatt!=null) {
+                    try {
+                        mBluetoothGatt.close();
+                        mBluetoothGatt.disconnect();
+                        mBluetoothGatt = null;
+                    } catch (Exception e) {
+
+                    }
+                    //run next code,same with first connect.
+                }
+            }
+        }
+
+        final BluetoothDevice device = mBluetoothAdapter
+                .getRemoteDevice(mBluetoothDeviceAddress);
+        if (device == null) {
+            Log.d(TAG, "没有设备");
+            return false;
+        }
+        // We want to directly connect to the device, so we are setting the
+        // autoConnect
+        // parameter to false.
+        //method don't support connectGatt in low 4.3
+        mBluetoothGatt = device.connectGatt(this, false, mGattCallback);
+
+        Log.d(TAG, "Trying to create a new connection.");
         mConnectionState = STATE_CONNECTING;
         return true;
     }
@@ -370,11 +437,16 @@ public class BluetoothLeService extends Service {
      * callback.
      */
     public void disconnect() {
-        if (mBluetoothAdapter == null || mBluetoothGatt == null) {
-            Log.w(TAG, "BluetoothAdapter not initialized");
-            return;
+        try {
+            if (mBluetoothAdapter == null || mBluetoothGatt == null) {
+                Log.w(TAG, "BluetoothAdapter not initialized");
+                return;
+            }
+            mBluetoothGatt.close();
+            mBluetoothGatt.disconnect();
+        } catch (Exception e) {
+            e.printStackTrace();
         }
-        mBluetoothGatt.disconnect();
     }
 
     /**

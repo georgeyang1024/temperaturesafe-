@@ -9,6 +9,10 @@ import cn.georgeyang.temperaturesafe.entity.SettingEntity;
 public class Vars {
     public static  final int Type_C = 0;
     public static final  int Type_F = 1;
+    public static final int WaringTypeLost = 1;
+    public static final int WaringTypeHeight = 2;
+    public static final int WaringTypeUnknow = 0;
+    public static final int WaringTypeLow = 3;
 
     public static  final int RecordInterval = 1000 * 60 * 3;//5分钟记录一条
     public static final int ShowInterval = 1000 * 60 * 6;
@@ -27,4 +31,6 @@ public class Vars {
     public static long unNomalStartTime;
     public static float startLowWarningTemp;
     public static float startHeightWaringTemp;
+
+    public static int lastWaringType;//最后报警原因
 }

@@ -212,6 +212,17 @@ public class HistoryActivity extends AppCompatActivity implements View.OnClickLi
         ChartResultVo result = AppUtil.buildChartList(dataList,selectYear,selectMonth,selectDay);
 
         if (result ==null || result.resultList==null || result.resultList.size()<=0) {
+            try {
+//                mChart.clearValues();
+//                mChart.notifyDataSetChanged();
+//                LineDataSet set = (LineDataSet)mChart.getData().getDataSetByIndex(0);
+//                set.setValues(new ArrayList<Entry>());
+                mChart.setData(null);
+//                mChart.notifyDataSetChanged();
+                mChart.invalidate();
+            } catch (Exception e) {
+
+            }
             Toast.makeText(this,"暂无数据",Toast.LENGTH_SHORT).show();
             return;
         }
@@ -293,6 +304,7 @@ public class HistoryActivity extends AppCompatActivity implements View.OnClickLi
                         showData(false);
                     }
                 },selectYear,selectMonth,selectDay);
+                datePicker.getDatePicker().setMaxDate(System.currentTimeMillis());
                 datePicker.show();
                 break;
             case R.id.tvName:
